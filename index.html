@@ -15,7 +15,32 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px;}
+
+@media (max-width: 768px) {
+  #sidebar { display: none !important; }
+  #mobile-nav { display: flex !important; }
+  #main-content { margin-bottom: 60px !important; }
+}
+@media (min-width: 769px) {
+  #mobile-nav { display: none !important; }
+}
+
 @keyframes spin{to{transform:rotate(360deg)}}
+
+#main-content { width: 100%; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.pipeline-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .pipeline-grid { grid-template-columns: 1fr !important; }
+  .modal-inner { max-width: 100% !important; border-radius: 12px !important; }
+  .deal-grid-3 { grid-template-columns: 1fr !important; }
+  .deal-grid-2 { grid-template-columns: 1fr !important; }
+  .inv-grid { grid-template-columns: 1fr 1fr !important; }
+  .exit-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .completion-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
 </style>
 </head>
 <body>
@@ -73,7 +98,7 @@ function fDate(iso){ if(!iso) return ""; return new Date(iso).toLocaleDateString
 function fPct(n){ if(!n&&n!==0) return "—"; return Number(n).toFixed(2)+"%"; }
 function uid(){ return Date.now()+Math.floor(Math.random()*10000); }
 
-var isConfigured = SUPABASE_URL !== "https://incrihrcpxqransvzmri.supabase.co" && SUPABASE_KEY !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY3JpaHJjcHhxcmFuc3Z6bXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQ2NzMsImV4cCI6MjA5NTI5MDY3M30.LTi2BQ50SqtW86ItZ1zI882r0XJbMIVDr2-E0wm2MH8";
+var isConfigured = true;
 
 async function sbGet(key){ try{ var r = await db.from("app_data").select("value").eq("key",key).single(); return r.data ? r.data.value : null; }catch(e){ return null; } }
 async function sbSet(key,value){ try{ await db.from("app_data").upsert({key:key,value:value},{onConflict:"key"}); }catch(e){} }
@@ -189,7 +214,7 @@ function NoteRow(props){
 
 function Sidebar(props){
   var tabs=["investments","investors","performance","network","settings"];
-  return h("div",{style:{width:190,minWidth:190,background:"#0d0d0d",display:"flex",flexDirection:"column",height:"100vh",position:"sticky",top:0,padding:"20px 12px",boxSizing:"border-box"}},
+  return h("div",{id:"sidebar",style:{width:190,minWidth:190,background:"#0d0d0d",display:"flex",flexDirection:"column",height:"100vh",position:"sticky",top:0,padding:"20px 12px",boxSizing:"border-box"}},
     h("div",{style:{paddingLeft:4,marginBottom:32}},h("span",{style:{color:"#fff",fontWeight:700,fontSize:"13px",fontFamily:F}},"In The Mix Ventures")),
     h("div",{style:{display:"flex",flexDirection:"column",gap:2,flex:1}},
       tabs.map(function(id){
@@ -559,7 +584,7 @@ function InvestmentsPage(props){
     );
   }
 
-  return h("div",{style:{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7",boxSizing:"border-box"}},
+  return h("div",{style:{flex:1,overflowY:"auto",padding:"20px 16px",background:"#f9f9f7",boxSizing:"border-box"}},
     completionDeal&&h(CompletionModal,{deal:completionDeal,onConfirm:completeDeal,onCancel:function(){setCompletionDeal(null);},settings:settings}),
     modal&&h(DealModal,{deal:modal,onSave:saveDeal,onClose:function(){setModal(null);},onDelete:delDeal,onPass:passDeal,onComplete:function(d){setModal(null);setCompletionDeal(d);},settings:settings,invProfiles:props.invProfiles,setInvProfiles:props.setInvProfiles,deals:deals,scenarios:props.scenarios[modal.id]||[],onSaveScenarios:props.onSaveScenarios}),
     h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26}},
@@ -672,17 +697,38 @@ function App(){
   );
 
   return h("div",{style:{display:"flex",height:"100vh",overflow:"hidden"}},
-    !isConfigured&&h("div",{style:{position:"fixed",top:0,left:0,right:0,background:"#fef3c7",borderBottom:"1px solid #fbbf24",padding:"10px 20px",zIndex:999,display:"flex",alignItems:"center",gap:10}},
-      h("span",{style:{fontSize:"12px",color:"#92400e",fontFamily:F}},"⚠ Demo mode — open index.html in a text editor and replace https://incrihrcpxqransvzmri.supabase.co and eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY3JpaHJjcHhxcmFuc3Z6bXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQ2NzMsImV4cCI6MjA5NTI5MDY3M30.LTi2BQ50SqtW86ItZ1zI882r0XJbMIVDr2-E0wm2MH8 with your real credentials.")
-    ),
-    h(Sidebar,{active:tab,onTab:setTab}),
-    h("div",{style:{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",marginTop:isConfigured?0:44}},
+    h(MobileNav,{active:tab,onTab:setTab}),
+    h("div",{id:"main-content",style:{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",marginTop:0}},
       tab==="investments"&&h(InvestmentsPage,{deals:deals,setDeals:setDeals,save:saveDeals,settings:settings,invProfiles:invProfiles,setInvProfiles:wrappedSetProfiles,scenarios:scenarios,onSaveScenarios:onSaveScenarios}),
       tab==="investors"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Investors page — coming soon"),
       tab==="performance"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Performance page — coming soon"),
       tab==="network"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Network page — coming soon"),
       tab==="settings"&&h(SettingsPage,{settings:settings,onSave:onSaveSettings})
     )
+  );
+}
+
+
+function MobileNav(props) {
+  var tabs = ["investments","investors","performance","network","settings"];
+  var icons = {
+    investments: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    investors: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+    performance: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    network: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9",
+    settings: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+  };
+  var labels = {investments:"Deals",investors:"Investors",performance:"Perf",network:"Network",settings:"Settings"};
+  return h("div",{id:"mobile-nav",style:{position:"fixed",bottom:0,left:0,right:0,background:"#0d0d0d",borderTop:"1px solid #1f1f1f",display:"flex",zIndex:200,height:60}},
+    tabs.map(function(id) {
+      var a = props.active === id;
+      return h("button",{key:id,onClick:function(){props.onTab(id);},style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:a?"#fff":"#6b7280",padding:"6px 0"}},
+        h("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round",strokeLinejoin:"round"},
+          h("path",{d:icons[id]})
+        ),
+        h("span",{style:{fontSize:"9px",fontWeight:a?700:400,fontFamily:F}},labels[id])
+      );
+    })
   );
 }
 
