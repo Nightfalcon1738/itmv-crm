@@ -16,12 +16,12 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px;}
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   #sidebar { display: none !important; }
   #mobile-nav { display: flex !important; }
   #main-content { margin-bottom: 60px !important; }
 }
-@media (min-width: 769px) {
+@media (min-width: 641px) {
   #mobile-nav { display: none !important; }
 }
 
@@ -30,7 +30,7 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
 #main-content { width: 100%; }
 .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .pipeline-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .pipeline-grid { grid-template-columns: 1fr !important; }
   .modal-inner { max-width: 100% !important; border-radius: 12px !important; }
