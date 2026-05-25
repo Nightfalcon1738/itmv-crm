@@ -24,8 +24,8 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif;}
 // ─────────────────────────────────────────────────────────────────
 // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
 // ─────────────────────────────────────────────────────────────────
-var SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
-var SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+var SUPABASE_URL = "https://incrihrcpxqransvzmri.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY3JpaHJjcHhxcmFuc3Z6bXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQ2NzMsImV4cCI6MjA5NTI5MDY3M30.LTi2BQ50SqtW86ItZ1zI882r0XJbMIVDr2-E0wm2MH8";
 // ─────────────────────────────────────────────────────────────────
 
 var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -73,7 +73,7 @@ function fDate(iso){ if(!iso) return ""; return new Date(iso).toLocaleDateString
 function fPct(n){ if(!n&&n!==0) return "—"; return Number(n).toFixed(2)+"%"; }
 function uid(){ return Date.now()+Math.floor(Math.random()*10000); }
 
-var isConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE" && SUPABASE_KEY !== "YOUR_SUPABASE_ANON_KEY_HERE";
+var isConfigured = SUPABASE_URL !== "https://incrihrcpxqransvzmri.supabase.co" && SUPABASE_KEY !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY3JpaHJjcHhxcmFuc3Z6bXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQ2NzMsImV4cCI6MjA5NTI5MDY3M30.LTi2BQ50SqtW86ItZ1zI882r0XJbMIVDr2-E0wm2MH8";
 
 async function sbGet(key){ try{ var r = await db.from("app_data").select("value").eq("key",key).single(); return r.data ? r.data.value : null; }catch(e){ return null; } }
 async function sbSet(key,value){ try{ await db.from("app_data").upsert({key:key,value:value},{onConflict:"key"}); }catch(e){} }
@@ -673,7 +673,7 @@ function App(){
 
   return h("div",{style:{display:"flex",height:"100vh",overflow:"hidden"}},
     !isConfigured&&h("div",{style:{position:"fixed",top:0,left:0,right:0,background:"#fef3c7",borderBottom:"1px solid #fbbf24",padding:"10px 20px",zIndex:999,display:"flex",alignItems:"center",gap:10}},
-      h("span",{style:{fontSize:"12px",color:"#92400e",fontFamily:F}},"⚠ Demo mode — open index.html in a text editor and replace YOUR_SUPABASE_URL_HERE and YOUR_SUPABASE_ANON_KEY_HERE with your real credentials.")
+      h("span",{style:{fontSize:"12px",color:"#92400e",fontFamily:F}},"⚠ Demo mode — open index.html in a text editor and replace https://incrihrcpxqransvzmri.supabase.co and eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY3JpaHJjcHhxcmFuc3Z6bXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTQ2NzMsImV4cCI6MjA5NTI5MDY3M30.LTi2BQ50SqtW86ItZ1zI882r0XJbMIVDr2-E0wm2MH8 with your real credentials.")
     ),
     h(Sidebar,{active:tab,onTab:setTab}),
     h("div",{style:{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",marginTop:isConfigured?0:44}},
