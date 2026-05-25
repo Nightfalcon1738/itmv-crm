@@ -7,1201 +7,686 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'DM Sans',sans-serif;background:#f9f9f7;}
-  input,select,textarea,button{font-family:'DM Sans',sans-serif;}
-  ::-webkit-scrollbar{width:5px;height:5px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f9f9f7;}
+input,select,textarea,button{font-family:'DM Sans',sans-serif;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px;}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div id="root"></div>
+<script>
+// ─────────────────────────────────────────────────────────────────
+// CONFIGURE YOUR SUPABASE CREDENTIALS HERE
+// ─────────────────────────────────────────────────────────────────
+var SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
+var SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+// ─────────────────────────────────────────────────────────────────
 
-<script type="text/babel">
-// ─────────────────────────────────────────────────────────────────────────────
-// ██████╗  ██████╗ ███╗   ██╗███████╗██╗ ██████╗
-// ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
-// ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
-// ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
-// ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
-//  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
-// ─────────────────────────────────────────────────────────────────────────────
-// 🔧 CONFIGURE YOUR SUPABASE CREDENTIALS BELOW
-// Get these from: supabase.com → your project → Settings → API
-// ─────────────────────────────────────────────────────────────────────────────
-const SUPABASE_URL  = "YOUR_SUPABASE_URL_HERE";
-const SUPABASE_KEY  = "YOUR_SUPABASE_ANON_KEY_HERE";
-// ─────────────────────────────────────────────────────────────────────────────
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var h = React.createElement;
+var useState = React.useState;
+var useEffect = React.useEffect;
+var useRef = React.useRef;
+var useCallback = React.useCallback;
 
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const { useState, useEffect, useRef, useCallback } = React;
-
-// ── Constants ────────────────────────────────────────────────────────────────
-const STAGES        = ["Sourcing","Diligence","Closing Process","Completed"];
-const ACTIVE_STAGES = ["Sourcing","Diligence","Closing Process"];
-const COMPANY_STAGES= ["Pre-Seed","Seed","Series A","Series B","Series C","Growth","Bridge","Other"];
-const SECTORS       = ["SaaS","Fintech","Consumer","Health","Climate","Dev Tools","AI/ML","Marketplace","Vertical Software","Other"];
-const CURRENCIES    = ["CAD","USD"];
-const ITMV_REFERRALS= ["Noah Chaikof","Daniel Tyberg","Other"];
-const MEETING_STATUS= ["No","Yes","Scheduled"];
-const CONTACT_ROLES = ["None","Founder","Co-Founder","CEO","CTO","CFO","Existing Investor"];
-const NOTE_TAGS     = ["General","Meeting","To do"];
-const INVEST_TYPES  = ["SAFE","Convertible Note","Preferred Share Financing Round","Other"];
-const HQ_OPTIONS    = ["Canada","United States","Other"];
-const CLOSING_FEE   = 0.02;
-const DEFAULT_SETTINGS = { usdCad:1.36, defaultCurrency:"USD", closingFeePct:2, hurdlePct:5, carryPct:20 };
-const ITMV_TEAM     = ["Noah Chaikof","Daniel Tyberg"];
-
-const INIT_DEALS = [
+// ── Constants ────────────────────────────────────────────────────
+var ACTIVE_STAGES = ["Sourcing","Diligence","Closing Process"];
+var COMPANY_STAGES = ["Pre-Seed","Seed","Series A","Series B","Series C","Growth","Bridge","Other"];
+var SECTORS = ["SaaS","Fintech","Consumer","Health","Climate","Dev Tools","AI/ML","Marketplace","Vertical Software","Other"];
+var CURRENCIES = ["CAD","USD"];
+var ITMV_REFERRALS = ["Noah Chaikof","Daniel Tyberg","Other"];
+var MEETING_STATUS = ["No","Yes","Scheduled"];
+var CONTACT_ROLES = ["None","Founder","Co-Founder","CEO","CTO","CFO","Existing Investor"];
+var NOTE_TAGS = ["General","Meeting","To do"];
+var INVEST_TYPES = ["SAFE","Convertible Note","Preferred Share Financing Round","Other"];
+var HQ_OPTIONS = ["Canada","United States","Other"];
+var CLOSING_FEE = 0.02;
+var DEFAULT_SETTINGS = {usdCad:1.36,defaultCurrency:"USD",closingFeePct:2,hurdlePct:5,carryPct:20};
+var INIT_DEALS = [
   {id:1,name:"Noteefy",stage:"Diligence",companyStage:"Seed",sector:"Vertical Software",website:"noteefy.app",investors:[],transactionCoInvestors:[],managementMeeting:"No",meetingDate:"",itmvReferral:"",itmvReferralOther:"",externalReferral:"",externalReferralEmail:"",relationshipSource:"",threadNotes:[],completionData:null,contactName:"",contactRole:"Founder",investType:"SAFE",investTypeOther:"",hq:"Canada",hqOther:"",passedFromStage:"",isBridge:false},
-  {id:2,name:"LookOptic",stage:"Diligence",companyStage:"Seed",sector:"Consumer",website:"lookoptic.com",investors:[],transactionCoInvestors:[],managementMeeting:"No",meetingDate:"",itmvReferral:"",itmvReferralOther:"",externalReferral:"",externalReferralEmail:"",relationshipSource:"",threadNotes:[],completionData:null,contactName:"",contactRole:"Founder",investType:"SAFE",investTypeOther:"",hq:"Canada",hqOther:"",passedFromStage:"",isBridge:false},
+  {id:2,name:"LookOptic",stage:"Diligence",companyStage:"Seed",sector:"Consumer",website:"lookoptic.com",investors:[],transactionCoInvestors:[],managementMeeting:"No",meetingDate:"",itmvReferral:"",itmvReferralOther:"",externalReferral:"",externalReferralEmail:"",relationshipSource:"",threadNotes:[],completionData:null,contactName:"",contactRole:"Founder",investType:"SAFE",investTypeOther:"",hq:"Canada",hqOther:"",passedFromStage:"",isBridge:false}
 ];
 
-// ── Styles ───────────────────────────────────────────────────────────────────
-const F    = "'DM Sans',sans-serif";
-const MONO = "'DM Mono',monospace";
+var F = "'DM Sans',sans-serif";
+var MONO = "'DM Mono',monospace";
 
-const lbl = {display:"block",fontSize:"10px",fontWeight:700,color:"#6b7280",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:F};
-const inp = (x={}) => Object.assign({width:"100%",border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 11px",fontSize:"13px",color:"#111",outline:"none",background:"#fafafa",boxSizing:"border-box",fontFamily:F},x);
-const btn = (v="primary",x={}) => {
-  const base={display:"inline-flex",alignItems:"center",justifyContent:"center",border:"none",borderRadius:8,padding:"7px 14px",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:F,transition:"opacity 0.1s"};
-  if(v==="primary") return Object.assign({},base,{background:"#111",color:"#fff"},x);
-  if(v==="danger")  return Object.assign({},base,{background:"#fef2f2",color:"#ef4444",border:"1px solid #fca5a5"},x);
-  if(v==="green")   return Object.assign({},base,{background:"#065f46",color:"#fff"},x);
-  return Object.assign({},base,{background:"#f3f4f6",color:"#374151"},x);
-};
+function inp(x) { return Object.assign({width:"100%",border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 11px",fontSize:"13px",color:"#111",outline:"none",background:"#fafafa",boxSizing:"border-box",fontFamily:F}, x||{}); }
+function btn(v,x) {
+  var base = {display:"inline-flex",alignItems:"center",justifyContent:"center",border:"none",borderRadius:8,padding:"7px 14px",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:F};
+  if(v==="primary") return Object.assign({},base,{background:"#111",color:"#fff"},x||{});
+  if(v==="danger")  return Object.assign({},base,{background:"#fef2f2",color:"#ef4444",border:"1px solid #fca5a5"},x||{});
+  if(v==="green")   return Object.assign({},base,{background:"#065f46",color:"#fff"},x||{});
+  return Object.assign({},base,{background:"#f3f4f6",color:"#374151"},x||{});
+}
+var lbl = {display:"block",fontSize:"10px",fontWeight:700,color:"#6b7280",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:F};
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function toCad(a,c,s){ if(!a) return 0; const n=Number(a); return c==="CAD"?n:n*((s&&s.usdCad)||1.36); }
+function toCad(a,c,s){ if(!a) return 0; var n=Number(a); return c==="CAD"?n:n*((s&&s.usdCad)||1.36); }
 function fC(n){ if(!n&&n!==0) return "—"; return "C$"+Math.round(n).toLocaleString("en-CA"); }
 function fA(n,c){ if(!n&&n!==0) return "—"; return (c==="USD"?"US$":"C$")+Math.round(Number(n)).toLocaleString("en-CA"); }
 function fDate(iso){ if(!iso) return ""; return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
 function fPct(n){ if(!n&&n!==0) return "—"; return Number(n).toFixed(2)+"%"; }
 function uid(){ return Date.now()+Math.floor(Math.random()*10000); }
 
+var isConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE" && SUPABASE_KEY !== "YOUR_SUPABASE_ANON_KEY_HERE";
+
+async function sbGet(key){ try{ var r = await db.from("app_data").select("value").eq("key",key).single(); return r.data ? r.data.value : null; }catch(e){ return null; } }
+async function sbSet(key,value){ try{ await db.from("app_data").upsert({key:key,value:value},{onConflict:"key"}); }catch(e){} }
+
 function calcCarry(proceeds,capitalIn,closeDate,hp,cp){
-  const wf=capitalIn*CLOSING_FEE;
-  let yrs=1;
+  var wf=capitalIn*CLOSING_FEE, yrs=1;
   if(closeDate){ yrs=Math.max((Date.now()-new Date(closeDate).getTime())/(365.25*24*3600*1000),1); }
-  const hurdle=capitalIn*(hp/100)*yrs;
-  if(proceeds<=capitalIn) return {workFee:0,workFeePayable:false,carryAmt:0,lpNet:proceeds,aboveHurdle:false,hurdle,yrs,totalItmvRev:0};
-  const afterCap=proceeds-capitalIn;
-  if(afterCap<wf) return {workFee:afterCap,workFeePayable:true,carryAmt:0,lpNet:capitalIn,aboveHurdle:false,hurdle,yrs,totalItmvRev:afterCap};
-  const afterWF=afterCap-wf;
-  if(afterWF<=hurdle) return {workFee:wf,workFeePayable:true,carryAmt:0,lpNet:proceeds-wf,aboveHurdle:false,hurdle,yrs,totalItmvRev:wf};
-  const stepD=hurdle*(cp/100);
-  const rem=afterWF-hurdle-stepD;
-  const carryE=rem>0?rem*(cp/100):0;
-  const carryAmt=stepD+carryE;
-  return {workFee:wf,workFeePayable:true,carryAmt,lpNet:proceeds-wf-carryAmt,aboveHurdle:true,hurdle,yrs,totalItmvRev:wf+carryAmt};
+  var hurdle=capitalIn*(hp/100)*yrs;
+  if(proceeds<=capitalIn) return {workFee:0,workFeePayable:false,carryAmt:0,lpNet:proceeds,aboveHurdle:false,hurdle:hurdle,yrs:yrs,totalItmvRev:0};
+  var afterCap=proceeds-capitalIn;
+  if(afterCap<wf) return {workFee:afterCap,workFeePayable:true,carryAmt:0,lpNet:capitalIn,aboveHurdle:false,hurdle:hurdle,yrs:yrs,totalItmvRev:afterCap};
+  var afterWF=afterCap-wf;
+  if(afterWF<=hurdle) return {workFee:wf,workFeePayable:true,carryAmt:0,lpNet:proceeds-wf,aboveHurdle:false,hurdle:hurdle,yrs:yrs,totalItmvRev:wf};
+  var stepD=hurdle*(cp/100), rem=afterWF-hurdle-stepD, carryE=rem>0?rem*(cp/100):0, carryAmt=stepD+carryE;
+  return {workFee:wf,workFeePayable:true,carryAmt:carryAmt,lpNet:proceeds-wf-carryAmt,aboveHurdle:true,hurdle:hurdle,yrs:yrs,totalItmvRev:wf+carryAmt};
 }
 
-// ── Supabase helpers ──────────────────────────────────────────────────────────
-async function sbGet(table, key){
-  const { data } = await db.from(table).select('value').eq('key', key).single();
-  return data ? data.value : null;
-}
-async function sbSet(table, key, value){
-  await db.from(table).upsert({ key, value }, { onConflict: 'key' });
+// ── Small components ─────────────────────────────────────────────
+function StageBadge(props){
+  var colors={"Sourcing":{bg:"#f3f4f6",tx:"#374151"},"Diligence":{bg:"#dbeafe",tx:"#1e40af"},"Closing Process":{bg:"#fef3c7",tx:"#92400e"},"Completed":{bg:"#d1fae5",tx:"#065f46"},"Passed":{bg:"#fee2e2",tx:"#991b1b"}};
+  var c=colors[props.stage]||colors["Sourcing"];
+  return h("span",{style:{background:c.bg,color:c.tx,fontSize:"10px",fontWeight:700,padding:"2px 8px",borderRadius:20,textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:F}},props.stage+(props.passedFrom?" (from "+props.passedFrom+")":""));
 }
 
-// ── Small atoms ───────────────────────────────────────────────────────────────
-function StageBadge({stage,passedFrom}){
-  const colors={"Sourcing":{bg:"#f3f4f6",tx:"#374151"},"Diligence":{bg:"#dbeafe",tx:"#1e40af"},"Closing Process":{bg:"#fef3c7",tx:"#92400e"},"Completed":{bg:"#d1fae5",tx:"#065f46"},"Passed":{bg:"#fee2e2",tx:"#991b1b"}};
-  const c=colors[stage]||colors["Sourcing"];
-  return <span style={{background:c.bg,color:c.tx,fontSize:"10px",fontWeight:700,padding:"2px 8px",borderRadius:20,letterSpacing:"0.03em",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:F}}>{stage}{passedFrom?` (from ${passedFrom})`:""}</span>;
-}
-
-function SettingsIcon({color="#6b7280"}){
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
-}
-
-function EditIcon(){
-  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
-}
-
-function EditableField({label,value,onChange,type="text",options,placeholder}){
-  const [editing,setEditing]=useState(false);
-  const [draft,setDraft]=useState(value||"");
-  useEffect(()=>{ setDraft(value||""); },[value]);
-  const commit=()=>{ onChange(draft); setEditing(false); };
-  const cancel=()=>{ setDraft(value||""); setEditing(false); };
-  return(
-    <div>
-      {label&&<label style={lbl}>{label}</label>}
-      {editing?(
-        <div style={{display:"flex",flexDirection:"column",gap:5}}>
-          {options
-            ?<select style={inp()} value={draft} onChange={e=>setDraft(e.target.value)} autoFocus>{options.map(o=><option key={o}>{o}</option>)}</select>
-            :<input style={inp()} type={type} value={draft} onChange={e=>setDraft(e.target.value)} autoFocus onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")cancel();}}/>}
-          <div style={{display:"flex",gap:6}}>
-            <button onClick={commit} style={btn("primary",{padding:"4px 12px",fontSize:"11px"})}>Save</button>
-            <button onClick={cancel} style={btn("ghost",{padding:"4px 10px",fontSize:"11px"})}>Cancel</button>
-          </div>
-        </div>
-      ):(
-        <div onClick={()=>setEditing(true)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",background:"#f3f4f6",borderRadius:8,fontSize:"13px",color:value?"#111":"#9ca3af",fontStyle:value?"normal":"italic",border:"1px solid #e5e7eb",cursor:"pointer",fontFamily:F,minHeight:36}} title="Click to edit">
-          <span style={{flex:1}}>{value||(placeholder||"Not set")}</span><EditIcon/>
-        </div>
-      )}
-    </div>
+function StatCard(props){
+  return h("div",{style:{background:props.highlight?"#111":"#fff",border:"1px solid "+(props.highlight?"#111":"#ebebeb"),borderRadius:12,padding:"16px 18px"}},
+    h("div",{style:{fontSize:"10px",fontWeight:700,color:props.highlight?"#6b7280":"#9ca3af",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:6,fontFamily:F}},props.label),
+    h("div",{style:{fontSize:"20px",fontWeight:700,color:props.highlight?"#fff":"#111",fontFamily:MONO}},props.value),
+    props.sub && h("div",{style:{fontSize:"11px",color:"#9ca3af",marginTop:3,fontFamily:F}},props.sub)
   );
 }
 
-function AutocompleteInput({value,onChange,options,placeholder}){
-  const [open,setOpen]=useState(false);
-  const filtered=value&&value.trim().length>0
-    ?options.filter(o=>o&&o.toLowerCase().includes(value.toLowerCase())&&o.toLowerCase()!==value.toLowerCase()).filter((v,i,a)=>a.indexOf(v)===i)
-    :[];
-  return(
-    <div style={{position:"relative"}}>
-      <input style={inp()} value={value} onChange={e=>{onChange(e.target.value);setOpen(true);}} onFocus={()=>setOpen(true)} onBlur={()=>setTimeout(()=>setOpen(false),150)} placeholder={placeholder||""}/>
-      {open&&filtered.length>0&&(
-        <div style={{position:"absolute",top:"100%",left:0,right:0,background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.08)",zIndex:60,overflow:"hidden",marginTop:2}}>
-          {filtered.slice(0,6).map(o=>(
-            <div key={o} onMouseDown={()=>onChange(o)} style={{padding:"7px 12px",fontSize:"12px",color:"#111",cursor:"pointer",fontFamily:F,borderBottom:"1px solid #f3f4f6"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#f9f9f7"} onMouseLeave={e=>e.currentTarget.style.background="#fff"}>{o}</div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StatCard({label,value,sub,highlight}){
-  return(
-    <div style={{background:highlight?"#111":"#fff",border:`1px solid ${highlight?"#111":"#ebebeb"}`,borderRadius:12,padding:"16px 18px"}}>
-      <div style={{fontSize:"10px",fontWeight:700,color:highlight?"#6b7280":"#9ca3af",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:6,fontFamily:F}}>{label}</div>
-      <div style={{fontSize:"20px",fontWeight:700,color:highlight?"#fff":"#111",letterSpacing:"-0.02em",fontFamily:MONO}}>{value}</div>
-      {sub&&<div style={{fontSize:"11px",color:highlight?"#6b7280":"#9ca3af",marginTop:3,fontFamily:F}}>{sub}</div>}
-    </div>
-  );
-}
-
-// ── Sidebar ───────────────────────────────────────────────────────────────────
-function Sidebar({active,onTab}){
-  const tabs=["investments","investors","performance","network","dataroom"];
-  const ns=a=>({width:"100%",padding:"9px 12px",borderRadius:8,border:"none",background:a?"rgba(255,255,255,0.18)":"transparent",color:a?"#fff":"#6b7280",fontSize:"13px",fontWeight:a?600:400,cursor:"pointer",fontFamily:F,textAlign:"left",transition:"all 0.15s",borderLeft:a?"2px solid rgba(255,255,255,0.5)":"2px solid transparent"});
-  const hov=(e,a,on)=>{ if(!a){e.currentTarget.style.background=on?"rgba(255,255,255,0.07)":"transparent";e.currentTarget.style.color=on?"#d1d5db":"#6b7280";} };
-  return(
-    <div style={{width:190,minWidth:190,background:"#0d0d0d",display:"flex",flexDirection:"column",height:"100vh",position:"sticky",top:0,padding:"20px 12px",boxSizing:"border-box"}}>
-      <div style={{paddingLeft:4,marginBottom:32}}><span style={{color:"#fff",fontWeight:700,fontSize:"13px",fontFamily:F}}>In The Mix Ventures</span></div>
-      <div style={{display:"flex",flexDirection:"column",gap:2,flex:1}}>
-        {tabs.map(id=>{
-          const a=active===id;
-          const label=id==="dataroom"?"Data Room":id.charAt(0).toUpperCase()+id.slice(1);
-          return <button key={id} onClick={()=>onTab(id)} style={ns(a)} onMouseEnter={e=>hov(e,a,true)} onMouseLeave={e=>hov(e,a,false)}>{label}</button>;
-        })}
-      </div>
-      <div style={{borderTop:"1px solid #1f1f1f",paddingTop:12}}>
-        {(()=>{ const a=active==="settings"; return <button onClick={()=>onTab("settings")} style={ns(a)} onMouseEnter={e=>hov(e,a,true)} onMouseLeave={e=>hov(e,a,false)}><span style={{display:"flex",alignItems:"center",gap:7}}><SettingsIcon color={a?"#fff":"#6b7280"}/>Settings</span></button>; })()}
-      </div>
-    </div>
-  );
-}
-
-// ── Note Row ──────────────────────────────────────────────────────────────────
-const NOTE_TAG_BG={"General":"#f3f4f6","Meeting":"#dbeafe","To do":"#fef3c7"};
-const NOTE_TAG_TX={"General":"#374151","Meeting":"#1e40af","To do":"#92400e"};
-
-function NoteRow({n,onSaveEdit,onDelete}){
-  const [editing,setEditing]=useState(false);
-  const [draft,setDraft]=useState(n.text);
-  const save=()=>{ onSaveEdit(n.id,draft); setEditing(false); };
-  return(
-    <div style={{background:"#f9f9f7",borderRadius:9,padding:"10px 12px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-        <div style={{display:"flex",alignItems:"center",gap:7}}>
-          <div style={{width:20,height:20,borderRadius:"50%",background:"#111",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontSize:"9px",fontWeight:700,fontFamily:F}}>{(n.author||"A")[0].toUpperCase()}</span></div>
-          <span style={{fontSize:"12px",fontWeight:700,color:"#111",fontFamily:F}}>{n.author}</span>
-          <span style={{fontSize:"10px",fontWeight:600,padding:"1px 6px",borderRadius:4,background:NOTE_TAG_BG[n.tag]||"#f3f4f6",color:NOTE_TAG_TX[n.tag]||"#374151",fontFamily:F}}>{n.tag||"General"}</span>
-          {n.noteDate&&<span style={{fontSize:"10px",color:"#6b7280",fontFamily:F}}>{fDate(n.noteDate)}</span>}
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {!editing&&<button onClick={()=>{setDraft(n.text);setEditing(true);}} style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:"10px",fontFamily:F,textDecoration:"underline"}}>Edit</button>}
-          <button onClick={onDelete} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:13,padding:0}}>×</button>
-        </div>
-      </div>
-      {editing?(
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <textarea style={inp({height:72,resize:"none"})} value={draft} onChange={e=>setDraft(e.target.value)} autoFocus/>
-          <div style={{display:"flex",gap:6}}>
-            <button onClick={save} style={btn("primary",{padding:"4px 12px",fontSize:"11px"})}>Save</button>
-            <button onClick={()=>setEditing(false)} style={btn("ghost",{padding:"4px 10px",fontSize:"11px"})}>Cancel</button>
-          </div>
-        </div>
-      ):(
-        <p style={{margin:0,fontSize:"13px",color:"#374151",lineHeight:1.6,whiteSpace:"pre-wrap",fontFamily:F}}>{n.text}</p>
-      )}
-    </div>
-  );
-}
-
-// ── DataRoomFiles ─────────────────────────────────────────────────────────────
-function DataRoomFiles({dealId, settings}){
-  const [files,setFiles]=useState([]);
-  const [uploading,setUploading]=useState(false);
-  const fileRef=useRef(null);
-
-  useEffect(()=>{
-    sbGet('dataroom', `deal-${dealId}`).then(v=>{ if(v) setFiles(v); });
-  },[dealId]);
-
-  async function saveF(f){ await sbSet('dataroom', `deal-${dealId}`, f); }
-
-  function upload(e){
-    setUploading(true);
-    const pending=Array.from(e.target.files);
-    let done=0;
-    pending.forEach(f=>{
-      const reader=new FileReader();
-      reader.onload=ev=>{
-        const id=uid();
-        setFiles(prev=>{
-          const u=prev.concat([{id,name:f.name,size:f.size,uploaded:new Date().toISOString(),dataUrl:ev.target.result}]);
-          saveF(u);
-          done++;
-          if(done===pending.length) setUploading(false);
-          return u;
-        });
-      };
-      reader.readAsDataURL(f);
-    });
+function EditableField(props){
+  var s = useState(props.value||"");
+  var draft=s[0], setDraft=s[1];
+  var e = useState(false);
+  var editing=e[0], setEditing=e[1];
+  useEffect(function(){ setDraft(props.value||""); },[props.value]);
+  function commit(){ props.onChange(draft); setEditing(false); }
+  function cancel(){ setDraft(props.value||""); setEditing(false); }
+  if(editing){
+    return h("div",{style:{display:"flex",flexDirection:"column",gap:5}},
+      props.label && h("label",{style:lbl},props.label),
+      props.options
+        ? h("select",{style:inp(),value:draft,onChange:function(ev){setDraft(ev.target.value);},autoFocus:true},props.options.map(function(o){return h("option",{key:o},o);}))
+        : h("input",{style:inp(),type:props.type||"text",value:draft,autoFocus:true,onChange:function(ev){setDraft(ev.target.value);},onKeyDown:function(ev){if(ev.key==="Enter")commit();if(ev.key==="Escape")cancel();}}),
+      h("div",{style:{display:"flex",gap:6}},
+        h("button",{onClick:commit,style:btn("primary",{padding:"4px 12px",fontSize:"11px"})},"Save"),
+        h("button",{onClick:cancel,style:btn("ghost",{padding:"4px 10px",fontSize:"11px"})},"Cancel")
+      )
+    );
   }
-
-  function remove(id){ const u=files.filter(f=>f.id!==id); setFiles(u); saveF(u); }
-  function download(f){ if(!f.dataUrl) return; const a=document.createElement("a"); a.href=f.dataUrl; a.download=f.name; a.click(); }
-  function fmtSize(b){ return b>1048576?(b/1048576).toFixed(1)+"MB":b>1024?Math.round(b/1024)+"KB":b+"B"; }
-
-  return(
-    <div>
-      <div style={{display:"flex",justifyContent:"flex-end",marginBottom:6}}>
-        <button onClick={()=>fileRef.current.click()} style={btn("ghost",{padding:"4px 10px",fontSize:"11px"})}>{uploading?"Uploading…":"+ Upload"}</button>
-        <input ref={fileRef} type="file" multiple style={{display:"none"}} onChange={upload}/>
-      </div>
-      {files.length===0&&<div style={{padding:"10px 12px",background:"#f9f9f7",borderRadius:8,fontSize:"12px",color:"#9ca3af",fontFamily:F,border:"1px dashed #e5e7eb",textAlign:"center"}}>No documents uploaded</div>}
-      {files.map(f=>(
-        <div key={f.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",background:"#f9f9f7",borderRadius:8,marginBottom:4}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-            <div style={{width:24,height:24,background:"#e5e7eb",borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:"8px",fontWeight:700,color:"#374151",fontFamily:F}}>{f.name.split(".").pop().toUpperCase().slice(0,4)}</span></div>
-            <div style={{minWidth:0}}>
-              <div style={{fontSize:"12px",fontWeight:600,color:"#111",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{f.name}</div>
-              {f.size&&<div style={{fontSize:"10px",color:"#9ca3af",fontFamily:F}}>{fmtSize(f.size)}</div>}
-            </div>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,marginLeft:8}}>
-            {f.dataUrl&&<button onClick={()=>download(f)} style={{background:"none",border:"none",cursor:"pointer",color:"#2563eb",fontSize:"11px",fontFamily:F,textDecoration:"underline",padding:0}}>Download</button>}
-            <button onClick={()=>remove(f.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:16,lineHeight:1,padding:0}}>×</button>
-          </div>
-        </div>
-      ))}
-    </div>
+  return h("div",null,
+    props.label && h("label",{style:lbl},props.label),
+    h("div",{onClick:function(){setEditing(true);},style:{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",background:"#f3f4f6",borderRadius:8,fontSize:"13px",color:props.value?"#111":"#9ca3af",fontStyle:props.value?"normal":"italic",border:"1px solid #e5e7eb",cursor:"pointer",fontFamily:F,minHeight:36},title:"Click to edit"},
+      h("span",{style:{flex:1}},props.value||(props.placeholder||"Not set")),
+      h("svg",{width:11,height:11,viewBox:"0 0 24 24",fill:"none",stroke:"#9ca3af",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},
+        h("path",{d:"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"}),
+        h("path",{d:"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"})
+      )
+    )
   );
 }
 
-// ── Exit Calculator ───────────────────────────────────────────────────────────
-function ExitCalculator({deal,savedScenarios,onSaveScenarios,settings}){
-  const init=savedScenarios&&savedScenarios.length>0?savedScenarios:[{label:"Base Case",exitVal:""},{label:"Bull Case",exitVal:""},{label:"Bear Case",exitVal:""}];
-  const [scenarios,setScenarios]=useState(init);
-  const cd=deal.completionData||{};
-  const totalIn=cd.totalCad||0;
-  const closeDate=cd.closeDate||null;
-  const ownership=(cd.ownership||0)/100;
-  const hp=settings.hurdlePct!=null?settings.hurdlePct:5;
-  const cp=settings.carryPct!=null?settings.carryPct:20;
-
-  useEffect(()=>{ onSaveScenarios(scenarios); },[JSON.stringify(scenarios)]);
-  const upd=(i,k,v)=>setScenarios(prev=>prev.map((s,idx)=>idx===i?{...s,[k]:v}:s));
-
-  return(
-    <div style={{background:"#f9f9f7",borderRadius:10,padding:"14px 16px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div style={{fontSize:"10px",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",fontFamily:F}}>Exit Analysis</div>
-        <button onClick={()=>setScenarios(p=>[...p,{label:"",exitVal:""}])} style={btn("ghost",{padding:"3px 10px",fontSize:"11px"})}>+ Add Scenario</button>
-      </div>
-      {!ownership&&<div style={{fontSize:"11px",color:"#92400e",background:"#fffbeb",padding:"6px 10px",borderRadius:6,marginBottom:10,fontFamily:F}}>Set ownership % in completion details to enable calculations.</div>}
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {scenarios.map((sc,i)=>{
-          const ev=Number(sc.exitVal)||0;
-          const proceeds=ev*ownership;
-          const res=calcCarry(proceeds,totalIn,closeDate,hp,cp);
-          const moic=totalIn>0&&proceeds>0?(proceeds/totalIn).toFixed(2):null;
-          const hasData=ev>0&&ownership>0&&totalIn>0;
-          return(
-            <div key={i} style={{background:"#fff",borderRadius:8,border:"1px solid #e5e7eb",overflow:"hidden"}}>
-              <div style={{display:"flex",gap:8,alignItems:"center",padding:"10px 12px",borderBottom:hasData?"1px solid #f0f0f0":"none"}}>
-                <input style={inp({flex:"0 0 150px",fontSize:"12px",fontWeight:600,background:"#f9f9f7",padding:"5px 9px"})} value={sc.label} onChange={e=>upd(i,"label",e.target.value)} placeholder={`Scenario ${i+1}`}/>
-                <span style={{fontSize:"11px",color:"#9ca3af",fontFamily:F,whiteSpace:"nowrap"}}>Exit val (C$)</span>
-                <input style={inp({flex:1,fontSize:"12px",padding:"5px 9px"})} type="number" value={sc.exitVal} onChange={e=>upd(i,"exitVal",e.target.value)} placeholder="0"/>
-                {scenarios.length>1&&<button onClick={()=>setScenarios(p=>p.filter((_,idx)=>idx!==i))} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:16,padding:0,flexShrink:0}}>×</button>}
-              </div>
-              {hasData&&(
-                <div style={{padding:"10px 12px"}}>
-                  <div style={{fontSize:"10px",color:"#9ca3af",marginBottom:8,fontFamily:F}}>{`Hurdle: ${hp}% p.a. × ${res.yrs.toFixed(1)} yrs = ${fC(res.hurdle)} | Ownership: ${fPct(ownership*100)}`}</div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:8}}>
-                    {[{l:"ITMV Proceeds",v:fC(proceeds)},{l:"Work Fee (2%)",v:res.workFeePayable?fC(res.workFee):"Not payable",c:res.workFeePayable?"#065f46":"#9ca3af"},{l:`Carry (${cp}%)`,v:res.aboveHurdle?fC(res.carryAmt):"Below hurdle",c:res.aboveHurdle?"#065f46":"#9ca3af"},{l:"Total ITMV Rev",v:fC(res.totalItmvRev),c:"#065f46",bold:true},{l:"LP Net",v:fC(res.lpNet)}].map(f=>(
-                      <div key={f.l} style={{background:"#f9f9f7",borderRadius:6,padding:"7px 9px"}}><div style={{fontSize:"9px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",marginBottom:2,fontFamily:F}}>{f.l}</div><div style={{fontSize:"12px",fontWeight:f.bold?700:600,color:f.c||"#111",fontFamily:MONO}}>{f.v}</div></div>
-                    ))}
-                  </div>
-                  <div style={{display:"flex",gap:6}}>
-                    <div style={{background:Number(moic)>=2?"#f0fdf4":Number(moic)>=1?"#f3f4f6":"#fef2f2",borderRadius:6,padding:"5px 10px",display:"inline-flex",gap:6,alignItems:"center"}}>
-                      <span style={{fontSize:"10px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",fontFamily:F}}>MOIC</span>
-                      <span style={{fontSize:"14px",fontWeight:700,color:Number(moic)>=2?"#065f46":Number(moic)>=1?"#374151":"#ef4444",fontFamily:MONO}}>{moic?`${moic}x`:"—"}</span>
-                    </div>
-                    <div style={{background:res.aboveHurdle?"#f0fdf4":"#fffbeb",borderRadius:6,padding:"5px 10px",display:"inline-flex",gap:6,alignItems:"center"}}>
-                      <span style={{fontSize:"10px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",fontFamily:F}}>Hurdle</span>
-                      <span style={{fontSize:"12px",fontWeight:700,color:res.aboveHurdle?"#065f46":"#92400e",fontFamily:F}}>{res.aboveHurdle?"Cleared":"Not cleared"}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+function AutocompleteInput(props){
+  var os = useState(false); var open=os[0],setOpen=os[1];
+  var filtered = props.value&&props.value.trim().length>0
+    ? props.options.filter(function(o){return o&&o.toLowerCase().indexOf(props.value.toLowerCase())!==-1&&o.toLowerCase()!==props.value.toLowerCase();}).filter(function(v,i,a){return a.indexOf(v)===i;})
+    : [];
+  return h("div",{style:{position:"relative"}},
+    h("input",{style:inp(),value:props.value,placeholder:props.placeholder||"",
+      onChange:function(e){props.onChange(e.target.value);setOpen(true);},
+      onFocus:function(){setOpen(true);},
+      onBlur:function(){setTimeout(function(){setOpen(false);},150);}}),
+    open&&filtered.length>0&&h("div",{style:{position:"absolute",top:"100%",left:0,right:0,background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.08)",zIndex:60,overflow:"hidden",marginTop:2}},
+      filtered.slice(0,6).map(function(o){
+        return h("div",{key:o,onMouseDown:function(){props.onChange(o);},style:{padding:"7px 12px",fontSize:"12px",color:"#111",cursor:"pointer",fontFamily:F,borderBottom:"1px solid #f3f4f6"}},o);
+      })
+    )
   );
 }
 
-// ── Completion Modal ──────────────────────────────────────────────────────────
-function CompletionModal({deal,onConfirm,onCancel,settings}){
-  const DRAFT_KEY=`itmv-cdraft-${deal.id}`;
-  const [loaded,setLoaded]=useState(false);
-  const [postMoney,setPostMoney]=useState("");
-  const [totalRound,setTotalRound]=useState("");
-  const [ownership,setOwnership]=useState("");
-  const [closeDate,setCloseDate]=useState(new Date().toISOString().split("T")[0]);
-  const [err,setErr]=useState("");
-
-  useEffect(()=>{
-    try{
-      const saved=localStorage.getItem(DRAFT_KEY);
-      if(saved){ const d=JSON.parse(saved); setPostMoney(d.postMoney||""); setTotalRound(d.totalRound||""); setOwnership(d.ownership||""); setCloseDate(d.closeDate||new Date().toISOString().split("T")[0]); }
-      else if(deal.completionData){ const cd=deal.completionData; setPostMoney(cd.postMoney?String(cd.postMoney):""); setTotalRound(cd.totalRound?String(cd.totalRound):""); setOwnership(cd.ownership?String(cd.ownership):""); setCloseDate(cd.closeDate||new Date().toISOString().split("T")[0]); }
-    }catch(e){}
-    setLoaded(true);
-  },[]);
-
-  const saveDraft=(pm,tr,ow,cd)=>{ try{ localStorage.setItem(DRAFT_KEY,JSON.stringify({postMoney:pm,totalRound:tr,ownership:ow,closeDate:cd})); }catch(e){} };
-  const totalCad=deal.investors.reduce((s,i)=>s+toCad(i.amount,i.currency,settings),0);
-  const hp=settings.hurdlePct!=null?settings.hurdlePct:5;
-  const hurdle=totalCad*(hp/100);
-  const suggested=postMoney&&totalCad?((totalCad/Number(postMoney))*100).toFixed(2):null;
-
-  function confirm(){
-    if(!ownership||Number(ownership)<=0){ setErr("ITMV Ownership % is required."); return; }
-    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
-    onConfirm({postMoney:Number(postMoney)||0,totalRound:Number(totalRound)||0,ownership:Number(ownership),totalCad,closeDate});
-  }
-
-  if(!loaded) return null;
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:20}}>
-      <div style={{background:"#fff",borderRadius:14,padding:"28px 30px",width:"100%",maxWidth:520,fontFamily:F,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 32px 80px rgba(0,0,0,0.25)"}}>
-        <h2 style={{margin:"0 0 20px",fontSize:"17px",fontWeight:700,color:"#111",fontFamily:F}}>Complete deal — {deal.name}</h2>
-        <div style={{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:18}}>
-          <div style={{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8,fontFamily:F}}>Investor summary</div>
-          {deal.investors.length===0&&<div style={{fontSize:"12px",color:"#9ca3af",fontFamily:F}}>No investors added yet.</div>}
-          {deal.investors.map(i=>{ const cad=toCad(i.amount,i.currency,settings); return <div key={i.id} style={{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#374151",padding:"3px 0",borderBottom:"1px solid #f0f0f0",fontFamily:F}}><span style={{fontWeight:600}}>{i.name||"Unnamed"}</span><span style={{fontFamily:MONO}}>{fA(i.amount,i.currency)} ({fC(cad)})</span></div>; })}
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",fontWeight:700,paddingTop:8,marginTop:4,fontFamily:F}}><span style={{color:"#111"}}>Total</span><span style={{fontFamily:MONO}}>{fC(totalCad)}</span></div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",fontWeight:700,fontFamily:F}}><span style={{color:"#065f46"}}>Work fee (2%)</span><span style={{color:"#065f46",fontFamily:MONO}}>{fC(totalCad*CLOSING_FEE)}</span></div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#6b7280",paddingTop:4,marginTop:4,borderTop:"1px solid #f0f0f0",fontFamily:F}}><span>Investor hurdle ({hp}% p.a.)</span><span style={{fontWeight:600,fontFamily:MONO}}>{fC(hurdle)}</span></div>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-          <div><label style={lbl}>Post-money valuation (C$)</label><input style={inp()} type="number" value={postMoney} onChange={e=>{const v=e.target.value;setPostMoney(v);saveDraft(v,totalRound,ownership,closeDate);}} placeholder="Optional"/></div>
-          <div><label style={lbl}>Total round size (C$)</label><input style={inp()} type="number" value={totalRound} onChange={e=>{const v=e.target.value;setTotalRound(v);saveDraft(postMoney,v,ownership,closeDate);}} placeholder="Optional"/></div>
-        </div>
-        <div style={{marginBottom:14}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-            <label style={lbl}>ITMV Ownership % *</label>
-            {suggested&&<button onClick={()=>{setOwnership(suggested);saveDraft(postMoney,totalRound,suggested,closeDate);}} style={{background:"none",border:"none",fontSize:"10px",color:"#2563eb",cursor:"pointer",fontFamily:F}}>Use suggested: {suggested}%</button>}
-          </div>
-          <input style={inp()} type="number" step="0.01" value={ownership} onChange={e=>{const v=e.target.value;setOwnership(v);saveDraft(postMoney,totalRound,v,closeDate);}} placeholder="e.g. 2.50"/>
-        </div>
-        <div style={{marginBottom:20}}><label style={lbl}>Close date</label><input style={inp()} type="date" value={closeDate} onChange={e=>{const v=e.target.value;setCloseDate(v);saveDraft(postMoney,totalRound,ownership,v);}}/></div>
-        {err&&<div style={{fontSize:"12px",color:"#ef4444",marginBottom:12,fontFamily:F}}>{err}</div>}
-        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-          <button onClick={onCancel} style={btn("ghost")}>Save & close</button>
-          <button onClick={confirm} style={btn("green",{padding:"9px 20px",fontSize:"13px"})}>Confirm & close deal</button>
-        </div>
-      </div>
-    </div>
+function NoteRow(props){
+  var n=props.n;
+  var es=useState(false); var editing=es[0],setEditing=es[1];
+  var ds=useState(n.text); var draft=ds[0],setDraft=ds[1];
+  var NOTE_TAG_BG={"General":"#f3f4f6","Meeting":"#dbeafe","To do":"#fef3c7"};
+  var NOTE_TAG_TX={"General":"#374151","Meeting":"#1e40af","To do":"#92400e"};
+  return h("div",{style:{background:"#f9f9f7",borderRadius:9,padding:"10px 12px"}},
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}},
+      h("div",{style:{display:"flex",alignItems:"center",gap:7}},
+        h("div",{style:{width:20,height:20,borderRadius:"50%",background:"#111",display:"flex",alignItems:"center",justifyContent:"center"}},h("span",{style:{color:"#fff",fontSize:"9px",fontWeight:700}},(n.author||"A")[0].toUpperCase())),
+        h("span",{style:{fontSize:"12px",fontWeight:700,color:"#111",fontFamily:F}},n.author),
+        h("span",{style:{fontSize:"10px",fontWeight:600,padding:"1px 6px",borderRadius:4,background:NOTE_TAG_BG[n.tag]||"#f3f4f6",color:NOTE_TAG_TX[n.tag]||"#374151",fontFamily:F}},n.tag||"General"),
+        n.noteDate&&h("span",{style:{fontSize:"10px",color:"#6b7280",fontFamily:F}},fDate(n.noteDate))
+      ),
+      h("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        !editing&&h("button",{onClick:function(){setDraft(n.text);setEditing(true);},style:{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:"10px",fontFamily:F,textDecoration:"underline"}},"Edit"),
+        h("button",{onClick:props.onDelete,style:{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:13,padding:0}},"×")
+      )
+    ),
+    editing
+      ? h("div",{style:{display:"flex",flexDirection:"column",gap:6}},
+          h("textarea",{style:inp({height:72,resize:"none"}),value:draft,autoFocus:true,onChange:function(e){setDraft(e.target.value);}}),
+          h("div",{style:{display:"flex",gap:6}},
+            h("button",{onClick:function(){props.onSaveEdit(n.id,draft);setEditing(false);},style:btn("primary",{padding:"4px 12px",fontSize:"11px"})},"Save"),
+            h("button",{onClick:function(){setEditing(false);},style:btn("ghost",{padding:"4px 10px",fontSize:"11px"})},"Cancel")
+          )
+        )
+      : h("p",{style:{margin:0,fontSize:"13px",color:"#374151",lineHeight:1.6,whiteSpace:"pre-wrap",fontFamily:F}},n.text)
   );
 }
 
-// ── Completed Deal Detail ─────────────────────────────────────────────────────
-function CompletedDealDetail({deal,onUpdateCompletionData,settings}){
-  const cd=deal.completionData||{};
-  const [saved,setSaved]=useState(false);
-  function upd(field,val){ const updated={...cd,[field]:val}; onUpdateCompletionData(updated); setSaved(true); setTimeout(()=>setSaved(false),2000); }
-  const totalCad=cd.totalCad||deal.investors.reduce((s,i)=>s+toCad(i.amount,i.currency,settings),0);
-  const hp=settings.hurdlePct!=null?settings.hurdlePct:5;
-  return(
-    <div style={{background:"#f9f9f7",borderRadius:12,padding:"16px 18px",border:"1px solid #e5e7eb"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontSize:"10px",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",fontFamily:F}}>Completion Details</div>
-        {saved&&<span style={{fontSize:"11px",color:"#065f46",fontWeight:600,fontFamily:F}}>Saved</span>}
-      </div>
-      <div style={{background:"#fff",borderRadius:8,padding:"10px 12px",marginBottom:14,border:"1px solid #ebebeb"}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",marginBottom:3,fontFamily:F}}><span style={{color:"#6b7280"}}>Total capital</span><strong style={{fontFamily:MONO}}>{fC(totalCad)}</strong></div>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",fontFamily:F}}><span style={{color:"#6b7280"}}>Work fees accrued</span><strong style={{color:"#065f46",fontFamily:MONO}}>{fC(totalCad*CLOSING_FEE)}</strong></div>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",paddingTop:4,marginTop:4,borderTop:"1px solid #f0f0f0",fontFamily:F}}><span style={{color:"#6b7280"}}>Investor hurdle ({hp}% p.a.)</span><strong style={{fontFamily:MONO}}>{fC(totalCad*(hp/100))}</strong></div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12}}>
-        <EditableField label="Post-money val. (C$)" value={cd.postMoney?String(cd.postMoney):""} onChange={v=>upd("postMoney",Number(v)||0)} type="number" placeholder="Not set"/>
-        <EditableField label="Total round (C$)" value={cd.totalRound?String(cd.totalRound):""} onChange={v=>upd("totalRound",Number(v)||0)} type="number" placeholder="Not set"/>
-        <EditableField label="ITMV ownership %" value={cd.ownership?String(cd.ownership):""} onChange={v=>upd("ownership",Number(v)||0)} type="number" placeholder="Not set"/>
-        <EditableField label="Close date" value={cd.closeDate||""} onChange={v=>upd("closeDate",v)} type="date" placeholder="Not set"/>
-      </div>
-    </div>
+function Sidebar(props){
+  var tabs=["investments","investors","performance","network","settings"];
+  return h("div",{style:{width:190,minWidth:190,background:"#0d0d0d",display:"flex",flexDirection:"column",height:"100vh",position:"sticky",top:0,padding:"20px 12px",boxSizing:"border-box"}},
+    h("div",{style:{paddingLeft:4,marginBottom:32}},h("span",{style:{color:"#fff",fontWeight:700,fontSize:"13px",fontFamily:F}},"In The Mix Ventures")),
+    h("div",{style:{display:"flex",flexDirection:"column",gap:2,flex:1}},
+      tabs.map(function(id){
+        var a=props.active===id;
+        var label={"investments":"Investments","investors":"Investors","performance":"Performance","network":"Network","settings":"Settings"}[id];
+        return h("button",{key:id,onClick:function(){props.onTab(id);},style:{width:"100%",padding:"9px 12px",borderRadius:8,border:"none",background:a?"rgba(255,255,255,0.18)":"transparent",color:a?"#fff":"#6b7280",fontSize:"13px",fontWeight:a?600:400,cursor:"pointer",fontFamily:F,textAlign:"left",borderLeft:a?"2px solid rgba(255,255,255,0.5)":"2px solid transparent"}},label);
+      })
+    )
   );
 }
 
-// ── InvNameInput ──────────────────────────────────────────────────────────────
-function InvNameInput({value,onChange,profiles}){
-  const [open,setOpen]=useState(false);
-  const matches=value.length>0?Object.values(profiles).filter(p=>p.name.toLowerCase().startsWith(value.toLowerCase())):[];
-  return(
-    <div style={{position:"relative"}}>
-      <input style={inp()} value={value} onChange={e=>{onChange(e.target.value,"name");setOpen(true);}} onFocus={()=>setOpen(true)} onBlur={()=>setTimeout(()=>setOpen(false),150)}/>
-      {open&&matches.length>0&&(
-        <div style={{position:"absolute",top:"100%",left:0,right:0,background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,boxShadow:"0 4px 12px rgba(0,0,0,0.08)",zIndex:50,overflow:"hidden",marginTop:2}}>
-          {matches.map(p=>(
-            <div key={p.name} onMouseDown={()=>onChange(p.name,"autofill",p)} style={{padding:"8px 12px",fontSize:"13px",color:"#111",cursor:"pointer",fontFamily:F,borderBottom:"1px solid #f3f4f6"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#f9f9f7"} onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
-              <div style={{fontWeight:600}}>{p.name}</div>
-              {p.email&&<div style={{fontSize:"11px",color:"#9ca3af"}}>{p.email}</div>}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+// ── Deal Modal ───────────────────────────────────────────────────
+function DealModal(props){
+  var deal=props.deal, settings=props.settings, deals=props.deals;
+  var liveDeal=deal.id?deals.find(function(x){return x.id===deal.id;})||deal:deal;
+  var ts=useState("details"); var tab=ts[0],setTab=ts[1];
+  var fs=useState(Object.assign({},liveDeal,{investors:liveDeal.investors||[],transactionCoInvestors:liveDeal.transactionCoInvestors||[],contactName:liveDeal.contactName||"",contactRole:liveDeal.contactRole||"Founder",investType:liveDeal.investType||"SAFE",investTypeOther:liveDeal.investTypeOther||"",hq:liveDeal.hq||"Canada",hqOther:liveDeal.hqOther||"",_nameSaved:!!(liveDeal.id&&liveDeal.name)}));
+  var form=fs[0],setForm=fs[1];
+  var ns=useState(liveDeal.threadNotes||[]); var notes=ns[0],setNotes=ns[1];
+  var nns=useState(""); var newNote=nns[0],setNewNote=nns[1];
+  var ntgs=useState("General"); var newNoteTag=ntgs[0],setNewNoteTag=ntgs[1];
+  var ndts=useState(""); var noteDate=ndts[0],setNoteDate=ndts[1];
+  var ndes=useState(false); var noteDateEnabled=ndes[0],setNoteDateEnabled=ndes[1];
+  var aus=useState(function(){ try{return localStorage.getItem("itmv-author")||"";}catch(e){return "";} }); var author=aus[0],setAuthor=aus[1];
+  var ncis=useState(""); var newCoInv=ncis[0],setNewCoInv=ncis[1];
+  var ams=useState(""); var autoSaveMsg=ams[0],setAutoSaveMsg=ams[1];
+  var notesEnd=useRef(null);
+  var isCompleted=form.stage==="Completed";
 
-// ── Deal Modal ────────────────────────────────────────────────────────────────
-function DealModal({deal,onSave,onClose,onDelete,onPass,onComplete,settings,invProfiles,setInvProfiles,deals,scenarios,onSaveScenarios}){
-  const liveDeal=deal.id?deals.find(x=>x.id===deal.id)||deal:deal;
-  const [tab,setTab]=useState("details");
-  const [form,setForm]=useState({...liveDeal,investors:liveDeal.investors||[],transactionCoInvestors:liveDeal.transactionCoInvestors||[],contactName:liveDeal.contactName||"",contactRole:liveDeal.contactRole||"Founder",investType:liveDeal.investType||"SAFE",investTypeOther:liveDeal.investTypeOther||"",hq:liveDeal.hq||"Canada",hqOther:liveDeal.hqOther||"",_nameSaved:!!(liveDeal.id&&liveDeal.name)});
-  const [notes,setNotes]=useState(liveDeal.threadNotes||[]);
-  const [newNote,setNewNote]=useState("");
-  const [newNoteTag,setNewNoteTag]=useState("General");
-  const [noteDate,setNoteDate]=useState("");
-  const [noteDateEnabled,setNoteDateEnabled]=useState(false);
-  const [author,setAuthor]=useState(()=>{ try{return localStorage.getItem("itmv-author")||"";}catch(e){return "";} });
-  const [newCoInv,setNewCoInv]=useState("");
-  const [autoSaveMsg,setAutoSaveMsg]=useState("");
-  const notesEnd=useRef(null);
-  const isCompleted=form.stage==="Completed";
-
-  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
-  function setAndAutoSave(k,v){
-    const updated={...form,[k]:v}; setForm(updated);
-    if(isCompleted){ onSave({...updated,threadNotes:notes},false); setAutoSaveMsg("Saved"); setTimeout(()=>setAutoSaveMsg(""),2000); }
+  function set(k,v){ setForm(function(f){ return Object.assign({},f,{[k]:v}); }); }
+  function setAndSave(k,v){
+    var updated=Object.assign({},form,{[k]:v}); setForm(updated);
+    if(isCompleted){ props.onSave(Object.assign({},updated,{threadNotes:notes}),false); setAutoSaveMsg("Saved"); setTimeout(function(){setAutoSaveMsg("");},2000); }
   }
   function handleUpdateCompletion(cd){
-    const updated={...form,completionData:cd}; setForm(updated);
-    onSave({...updated,threadNotes:notes},false); setAutoSaveMsg("Saved"); setTimeout(()=>setAutoSaveMsg(""),2000);
+    var updated=Object.assign({},form,{completionData:cd}); setForm(updated);
+    props.onSave(Object.assign({},updated,{threadNotes:notes}),false); setAutoSaveMsg("Saved"); setTimeout(function(){setAutoSaveMsg("");},2000);
   }
-
-  function addInv(){ set("investors",[...form.investors,{id:uid(),name:"",email:"",amount:"",currency:settings.defaultCurrency||"USD",affiliateEntity:""}]); }
-  function updInv(id,k,v){
-    const updated=form.investors.map(i=>i.id===id?{...i,[k]:v}:i); set("investors",updated);
-    const inv=updated.find(i=>i.id===id);
-    if(inv&&inv.name){ setInvProfiles(prev=>{ const key=inv.name.toLowerCase(); return {...prev,[key]:{name:inv.name,email:inv.email||(prev[key]?.email||""),currency:inv.currency||(prev[key]?.currency||"USD"),affiliateEntity:inv.affiliateEntity||(prev[key]?.affiliateEntity||"")}}; }); }
-  }
-  function handleInvName(id,val,mode,profile){
-    if(mode==="autofill"&&profile){ set("investors",form.investors.map(i=>i.id===id?{...i,name:profile.name,email:i.email||profile.email||"",currency:i.currency||profile.currency||"USD",affiliateEntity:i.affiliateEntity||profile.affiliateEntity||""}:i)); }
-    else updInv(id,"name",val);
-  }
-  function delInv(id){ set("investors",form.investors.filter(i=>i.id!==id)); }
-
+  function addInv(){ set("investors",form.investors.concat([{id:uid(),name:"",email:"",amount:"",currency:settings.defaultCurrency||"USD",affiliateEntity:""}])); }
+  function updInv(id,k,v){ set("investors",form.investors.map(function(i){ return i.id===id?Object.assign({},i,{[k]:v}):i; })); }
+  function delInv(id){ set("investors",form.investors.filter(function(i){ return i.id!==id; })); }
   function addNote(){
     if(!newNote.trim()) return;
-    const n={id:uid(),text:newNote.trim(),author:author||"Anonymous",timestamp:new Date().toISOString(),tag:newNoteTag,noteDate:noteDateEnabled?noteDate:""};
-    const u=[...notes,n]; setNotes(u); setNewNote(""); setNewNoteTag("General"); setNoteDate(""); setNoteDateEnabled(false);
-    onSave({...form,threadNotes:u},false);
-    setTimeout(()=>{ if(notesEnd.current) notesEnd.current.scrollIntoView({behavior:"smooth"}); },100);
+    var n={id:uid(),text:newNote.trim(),author:author||"Anonymous",timestamp:new Date().toISOString(),tag:newNoteTag,noteDate:noteDateEnabled?noteDate:""};
+    var u=notes.concat([n]); setNotes(u); setNewNote(""); setNewNoteTag("General"); setNoteDate(""); setNoteDateEnabled(false);
+    props.onSave(Object.assign({},form,{threadNotes:u}),false);
+    setTimeout(function(){if(notesEnd.current)notesEnd.current.scrollIntoView({behavior:"smooth"});},100);
   }
+  function handleSave(){ props.onSave(Object.assign({},form,{threadNotes:notes}),true); }
+  var totalCad=form.investors.reduce(function(s,i){ return s+toCad(i.amount,i.currency,settings); },0);
 
-  function handleSave(){ onSave({...form,threadNotes:notes},true); }
-  const totalCad=form.investors.reduce((s,i)=>s+toCad(i.amount,i.currency,settings),0);
-  const SH=label=><div style={{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10,fontFamily:F}}>{label}</div>;
+  function SH(label){ return h("div",{style:{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10,fontFamily:F}},label); }
 
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16}}>
-      <div style={{background:"#fff",borderRadius:14,width:"100%",maxWidth:940,boxShadow:"0 24px 64px rgba(0,0,0,0.15)",fontFamily:F,maxHeight:"94vh",display:"flex",flexDirection:"column"}}>
-        {/* Header */}
-        <div style={{padding:"20px 28px 0",flexShrink:0}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:"17px",fontWeight:700,color:"#111",fontFamily:F}}>{form.name||"New deal"}</span>
-              <StageBadge stage={form.stage} passedFrom={form.stage==="Passed"?form.passedFromStage:null}/>
-              {autoSaveMsg&&<span style={{fontSize:"11px",color:"#065f46",fontWeight:600,fontFamily:F}}>✓ {autoSaveMsg}</span>}
-            </div>
-            <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:22,color:"#9ca3af",lineHeight:1,padding:"0 0 0 12px"}}>×</button>
-          </div>
-          <div style={{display:"flex",borderBottom:"1px solid #f0f0f0"}}>
-            {["details","investors","notes"].map(t=>(
-              <button key={t} onClick={()=>setTab(t)} style={{background:"none",border:"none",borderBottom:tab===t?"2px solid #111":"2px solid transparent",padding:"7px 14px",fontSize:"12px",fontWeight:tab===t?700:500,color:tab===t?"#111":"#9ca3af",cursor:"pointer",marginBottom:"-1px",textTransform:"capitalize",fontFamily:F}}>
-                {t+(t==="notes"&&notes.length>0?` (${notes.length})`:"")}
-              </button>
-            ))}
-          </div>
-        </div>
+  // tabs
+  var tabBar = h("div",{style:{display:"flex",borderBottom:"1px solid #f0f0f0"}},
+    ["details","investors","notes"].map(function(t){
+      return h("button",{key:t,onClick:function(){setTab(t);},style:{background:"none",border:"none",borderBottom:tab===t?"2px solid #111":"2px solid transparent",padding:"7px 14px",fontSize:"12px",fontWeight:tab===t?700:500,color:tab===t?"#111":"#9ca3af",cursor:"pointer",marginBottom:"-1px",textTransform:"capitalize",fontFamily:F}},
+        t+(t==="notes"&&notes.length>0?" ("+notes.length+")":""));
+    })
+  );
 
-        {/* Body */}
-        <div style={{overflowY:"auto",flex:1,padding:"18px 28px"}}>
-          {tab==="details"&&(
-            <div style={{display:"flex",flexDirection:"column",gap:16}}>
-              {isCompleted&&form.completionData&&<CompletedDealDetail deal={form} onUpdateCompletionData={handleUpdateCompletion} settings={settings}/>}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                <div>
-                  <label style={lbl}>Company name</label>
-                  {isCompleted?<EditableField value={form.name} onChange={v=>setAndAutoSave("name",v)}/>
-                    :form._nameSaved
-                      ?<div style={{display:"flex",alignItems:"center",gap:8}}><div style={{padding:"8px 11px",background:"#f3f4f6",borderRadius:8,fontSize:"13px",color:"#111",border:"1px solid #e5e7eb",flex:1,fontFamily:F}}>{form.name}</div><button onClick={()=>set("_nameSaved",false)} style={{background:"none",border:"none",fontSize:"10px",color:"#6b7280",cursor:"pointer",textDecoration:"underline",fontFamily:F}}>Edit</button></div>
-                      :<div style={{display:"flex",gap:6}}><input style={inp()} value={form.name} onChange={e=>set("name",e.target.value)}/>{form.name&&<button onClick={()=>set("_nameSaved",true)} style={btn("ghost",{padding:"7px 10px",fontSize:"11px",flexShrink:0})}>Save</button>}</div>}
-                </div>
-                <div>
-                  <label style={lbl}>Company stage <span style={{fontWeight:400,color:"#9ca3af",textTransform:"none",letterSpacing:0}}>(Raising)</span></label>
-                  {isCompleted?<EditableField value={form.companyStage} onChange={v=>setAndAutoSave("companyStage",v)} options={COMPANY_STAGES}/>
-                    :<div><select style={inp()} value={form.companyStage} onChange={e=>set("companyStage",e.target.value)}>{COMPANY_STAGES.map(s=><option key={s}>{s}</option>)}</select>
-                    <label style={{display:"flex",alignItems:"center",gap:6,marginTop:6,cursor:"pointer",userSelect:"none"}}><input type="checkbox" checked={!!form.isBridge} onChange={e=>set("isBridge",e.target.checked)} style={{cursor:"pointer",width:13,height:13}}/><span style={{fontSize:"12px",color:"#374151",fontFamily:F}}>Bridge round</span></label></div>}
-                </div>
-                <div>
-                  <label style={lbl}>Sector</label>
-                  {isCompleted?<EditableField value={form.sector} onChange={v=>setAndAutoSave("sector",v)} options={SECTORS}/>:<select style={inp()} value={form.sector} onChange={e=>set("sector",e.target.value)}>{SECTORS.map(s=><option key={s}>{s}</option>)}</select>}
-                </div>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                {!isCompleted&&<div><label style={lbl}>Deal stage</label><select style={inp()} value={form.stage} onChange={e=>set("stage",e.target.value)}>{ACTIVE_STAGES.map(s=><option key={s}>{s}</option>)}</select></div>}
-                <div>
-                  <label style={lbl}>Investment type</label>
-                  {isCompleted?<EditableField value={form.investType} onChange={v=>setAndAutoSave("investType",v)} options={INVEST_TYPES}/>:<select style={inp()} value={form.investType} onChange={e=>set("investType",e.target.value)}>{INVEST_TYPES.map(t=><option key={t}>{t}</option>)}</select>}
-                  {form.investType==="Other"&&(isCompleted?<EditableField value={form.investTypeOther||""} onChange={v=>setAndAutoSave("investTypeOther",v)} placeholder="Specify..."/>:<input style={inp({marginTop:6})} value={form.investTypeOther||""} onChange={e=>set("investTypeOther",e.target.value)} placeholder="Specify..."/>)}
-                </div>
-                <div>
-                  <label style={lbl}>Headquartered</label>
-                  {isCompleted?<EditableField value={form.hq||"Canada"} onChange={v=>setAndAutoSave("hq",v)} options={HQ_OPTIONS}/>:<select style={inp()} value={form.hq||"Canada"} onChange={e=>set("hq",e.target.value)}>{HQ_OPTIONS.map(h=><option key={h}>{h}</option>)}</select>}
-                  {form.hq==="Other"&&(isCompleted?<EditableField value={form.hqOther||""} onChange={v=>setAndAutoSave("hqOther",v)} placeholder="Specify..."/>:<input style={inp({marginTop:6})} value={form.hqOther||""} onChange={e=>set("hqOther",e.target.value)} placeholder="Specify..."/>)}
-                </div>
-              </div>
-              <div style={{background:"#fafaf8",borderRadius:10,padding:"14px 16px"}}>
-                {SH("Company Contact")}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                  <div><label style={lbl}>Contact name</label>{isCompleted?<EditableField value={form.contactName||""} onChange={v=>setAndAutoSave("contactName",v)} placeholder="Not set"/>:<input style={inp()} value={form.contactName||""} onChange={e=>set("contactName",e.target.value)} placeholder="Full name"/>}</div>
-                  <div><label style={lbl}>Role</label>{isCompleted?<EditableField value={form.contactRole||""} onChange={v=>setAndAutoSave("contactRole",v)} options={CONTACT_ROLES}/>:<select style={inp()} value={form.contactRole||"Founder"} onChange={e=>set("contactRole",e.target.value)}>{CONTACT_ROLES.map(r=><option key={r}>{r}</option>)}</select>}</div>
-                  {!isCompleted&&<div>
-                    <label style={lbl}>Meeting?</label>
-                    <div style={{display:"flex",gap:5}}>{MEETING_STATUS.map(s=><button key={s} onClick={()=>{set("managementMeeting",s);if(s==="Yes"){setTab("notes");setNewNoteTag("Meeting");}}} style={{padding:"4px 10px",borderRadius:20,border:form.managementMeeting===s?"1.5px solid #111":"1.5px solid #e5e7eb",background:form.managementMeeting===s?"#111":"#fff",color:form.managementMeeting===s?"#fff":"#374151",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:F}}>{s}</button>)}</div>
-                    {form.managementMeeting==="Scheduled"&&<input style={inp({marginTop:6})} type="date" value={form.meetingDate||""} onChange={e=>set("meetingDate",e.target.value)}/>}
-                  </div>}
-                </div>
-              </div>
-              <div style={{background:"#fafaf8",borderRadius:10,padding:"14px 16px"}}>
-                {SH("Deal Attribution")}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                  <div><label style={lbl}>ITMV referral</label>{isCompleted?<EditableField value={form.itmvReferral||""} onChange={v=>setAndAutoSave("itmvReferral",v)} options={[""].concat(ITMV_REFERRALS)} placeholder="Not set"/>:<><select style={inp()} value={form.itmvReferral||""} onChange={e=>set("itmvReferral",e.target.value)}><option value="">Select...</option>{ITMV_REFERRALS.map(r=><option key={r}>{r}</option>)}</select>{form.itmvReferral==="Other"&&<input style={inp({marginTop:6})} value={form.itmvReferralOther||""} onChange={e=>set("itmvReferralOther",e.target.value)}/>}</>}</div>
-                  <div><label style={lbl}>External referral</label>{isCompleted?<EditableField value={form.externalReferral||""} onChange={v=>setAndAutoSave("externalReferral",v)} placeholder="Not set"/>:<AutocompleteInput value={form.externalReferral||""} onChange={v=>set("externalReferral",v)} options={deals.map(d=>d.externalReferral).filter(Boolean)} placeholder="Name or firm..."/>}</div>
-                  <div><label style={lbl}>Relationship source</label>{isCompleted?<EditableField value={form.relationshipSource||""} onChange={v=>setAndAutoSave("relationshipSource",v)} placeholder="Not set"/>:<AutocompleteInput value={form.relationshipSource||""} onChange={v=>set("relationshipSource",v)} options={deals.map(d=>d.relationshipSource).filter(Boolean)} placeholder="How relationship was established..."/>}</div>
-                </div>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                <div><label style={lbl}>Website</label>{isCompleted?<EditableField value={form.website||""} onChange={v=>setAndAutoSave("website",v)} placeholder="Not set"/>:form.website?<div style={{display:"flex",alignItems:"center",gap:8}}><a href={`https://${form.website.replace(/^https?:\/\//,"")}`} target="_blank" rel="noopener noreferrer" style={{fontSize:"13px",color:"#2563eb",textDecoration:"none",fontFamily:F}}>{form.website} ↗</a><button onClick={()=>set("website","")} style={{background:"none",border:"none",fontSize:"11px",color:"#9ca3af",cursor:"pointer",textDecoration:"underline",fontFamily:F}}>Change</button></div>:<input style={inp()} value={form.website||""} onChange={e=>set("website",e.target.value)}/>}</div>
-              </div>
-              {isCompleted&&form.id&&<div style={{background:"#fafaf8",borderRadius:10,padding:"14px 16px"}}>{SH("Data Room")}<DataRoomFiles dealId={form.id} settings={settings}/></div>}
-              {isCompleted&&form.completionData&&<ExitCalculator deal={form} savedScenarios={scenarios} onSaveScenarios={s=>onSaveScenarios(form.id,s)} settings={settings}/>}
-            </div>
-          )}
+  var detailsTab = h("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+    // Completion details if completed
+    isCompleted&&form.completionData&&h("div",{style:{background:"#f9f9f7",borderRadius:12,padding:"16px 18px",border:"1px solid #e5e7eb"}},
+      SH("Completion Details"),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12}},
+        h(EditableField,{label:"Post-money (C$)",value:form.completionData.postMoney?String(form.completionData.postMoney):"",onChange:function(v){handleUpdateCompletion(Object.assign({},form.completionData,{postMoney:Number(v)||0}));},type:"number",placeholder:"Not set"}),
+        h(EditableField,{label:"Total round (C$)",value:form.completionData.totalRound?String(form.completionData.totalRound):"",onChange:function(v){handleUpdateCompletion(Object.assign({},form.completionData,{totalRound:Number(v)||0}));},type:"number",placeholder:"Not set"}),
+        h(EditableField,{label:"ITMV ownership %",value:form.completionData.ownership?String(form.completionData.ownership):"",onChange:function(v){handleUpdateCompletion(Object.assign({},form.completionData,{ownership:Number(v)||0}));},type:"number",placeholder:"Not set"}),
+        h(EditableField,{label:"Close date",value:form.completionData.closeDate||"",onChange:function(v){handleUpdateCompletion(Object.assign({},form.completionData,{closeDate:v}));},type:"date",placeholder:"Not set"})
+      )
+    ),
+    // Basic fields
+    h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}},
+      h("div",null,
+        h("label",{style:lbl},"Company name"),
+        isCompleted
+          ? h(EditableField,{value:form.name,onChange:function(v){setAndSave("name",v);}})
+          : form._nameSaved
+            ? h("div",{style:{display:"flex",alignItems:"center",gap:8}},
+                h("div",{style:{padding:"8px 11px",background:"#f3f4f6",borderRadius:8,fontSize:"13px",color:"#111",border:"1px solid #e5e7eb",flex:1,fontFamily:F}},form.name),
+                h("button",{onClick:function(){set("_nameSaved",false);},style:{background:"none",border:"none",fontSize:"10px",color:"#6b7280",cursor:"pointer",textDecoration:"underline",fontFamily:F}},"Edit")
+              )
+            : h("div",{style:{display:"flex",gap:6}},
+                h("input",{style:inp(),value:form.name,onChange:function(e){set("name",e.target.value);}}),
+                form.name&&h("button",{onClick:function(){set("_nameSaved",true);},style:btn("ghost",{padding:"7px 10px",fontSize:"11px",flexShrink:0})},"Save")
+              )
+      ),
+      h("div",null,
+        h("label",{style:lbl},"Company stage"),
+        isCompleted
+          ? h(EditableField,{value:form.companyStage,onChange:function(v){setAndSave("companyStage",v);},options:COMPANY_STAGES})
+          : h("div",null,
+              h("select",{style:inp(),value:form.companyStage,onChange:function(e){set("companyStage",e.target.value);}},COMPANY_STAGES.map(function(s){return h("option",{key:s},s);})),
+              h("label",{style:{display:"flex",alignItems:"center",gap:6,marginTop:6,cursor:"pointer",userSelect:"none"}},
+                h("input",{type:"checkbox",checked:!!form.isBridge,onChange:function(e){set("isBridge",e.target.checked);},style:{cursor:"pointer",width:13,height:13}}),
+                h("span",{style:{fontSize:"12px",color:"#374151",fontFamily:F}},"Bridge round")
+              )
+            )
+      ),
+      h("div",null,
+        h("label",{style:lbl},"Sector"),
+        isCompleted
+          ? h(EditableField,{value:form.sector,onChange:function(v){setAndSave("sector",v);},options:SECTORS})
+          : h("select",{style:inp(),value:form.sector,onChange:function(e){set("sector",e.target.value);}},SECTORS.map(function(s){return h("option",{key:s},s);}))
+      )
+    ),
+    h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}},
+      !isCompleted&&h("div",null,
+        h("label",{style:lbl},"Deal stage"),
+        h("select",{style:inp(),value:form.stage,onChange:function(e){set("stage",e.target.value);}},ACTIVE_STAGES.map(function(s){return h("option",{key:s},s);}))
+      ),
+      h("div",null,
+        h("label",{style:lbl},"Investment type"),
+        isCompleted
+          ? h(EditableField,{value:form.investType,onChange:function(v){setAndSave("investType",v);},options:INVEST_TYPES})
+          : h("select",{style:inp(),value:form.investType,onChange:function(e){set("investType",e.target.value);}},INVEST_TYPES.map(function(t){return h("option",{key:t},t);}))
+      ),
+      h("div",null,
+        h("label",{style:lbl},"Headquartered"),
+        isCompleted
+          ? h(EditableField,{value:form.hq||"Canada",onChange:function(v){setAndSave("hq",v);},options:HQ_OPTIONS})
+          : h("select",{style:inp(),value:form.hq||"Canada",onChange:function(e){set("hq",e.target.value);}},HQ_OPTIONS.map(function(hq){return h("option",{key:hq},hq);}))
+      )
+    ),
+    h("div",{style:{background:"#fafaf8",borderRadius:10,padding:"14px 16px"}},
+      SH("Company Contact"),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}},
+        h("div",null,h("label",{style:lbl},"Contact name"),isCompleted?h(EditableField,{value:form.contactName||"",onChange:function(v){setAndSave("contactName",v);},placeholder:"Not set"}):h("input",{style:inp(),value:form.contactName||"",onChange:function(e){set("contactName",e.target.value);},placeholder:"Full name"})),
+        h("div",null,h("label",{style:lbl},"Role"),isCompleted?h(EditableField,{value:form.contactRole||"",onChange:function(v){setAndSave("contactRole",v);},options:CONTACT_ROLES}):h("select",{style:inp(),value:form.contactRole||"Founder",onChange:function(e){set("contactRole",e.target.value);}},CONTACT_ROLES.map(function(r){return h("option",{key:r},r);}))),
+        !isCompleted&&h("div",null,
+          h("label",{style:lbl},"Meeting?"),
+          h("div",{style:{display:"flex",gap:5}},MEETING_STATUS.map(function(s){return h("button",{key:s,onClick:function(){set("managementMeeting",s);if(s==="Yes"){setTab("notes");setNewNoteTag("Meeting");}},style:{padding:"4px 10px",borderRadius:20,border:form.managementMeeting===s?"1.5px solid #111":"1.5px solid #e5e7eb",background:form.managementMeeting===s?"#111":"#fff",color:form.managementMeeting===s?"#fff":"#374151",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:F}},s);})),
+          form.managementMeeting==="Scheduled"&&h("input",{style:inp({marginTop:6}),type:"date",value:form.meetingDate||"",onChange:function(e){set("meetingDate",e.target.value);}})
+        )
+      )
+    ),
+    h("div",{style:{background:"#fafaf8",borderRadius:10,padding:"14px 16px"}},
+      SH("Deal Attribution"),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}},
+        h("div",null,h("label",{style:lbl},"ITMV referral"),isCompleted?h(EditableField,{value:form.itmvReferral||"",onChange:function(v){setAndSave("itmvReferral",v);},options:[""].concat(ITMV_REFERRALS),placeholder:"Not set"}):h("select",{style:inp(),value:form.itmvReferral||"",onChange:function(e){set("itmvReferral",e.target.value);}},h("option",{value:""},"Select..."),ITMV_REFERRALS.map(function(r){return h("option",{key:r},r);}))),
+        h("div",null,h("label",{style:lbl},"External referral"),isCompleted?h(EditableField,{value:form.externalReferral||"",onChange:function(v){setAndSave("externalReferral",v);},placeholder:"Not set"}):h(AutocompleteInput,{value:form.externalReferral||"",onChange:function(v){set("externalReferral",v);},options:deals.map(function(d){return d.externalReferral;}).filter(Boolean),placeholder:"Name or firm..."})),
+        h("div",null,h("label",{style:lbl},"Relationship source"),isCompleted?h(EditableField,{value:form.relationshipSource||"",onChange:function(v){setAndSave("relationshipSource",v);},placeholder:"Not set"}):h(AutocompleteInput,{value:form.relationshipSource||"",onChange:function(v){set("relationshipSource",v);},options:deals.map(function(d){return d.relationshipSource;}).filter(Boolean),placeholder:"How relationship was established..."}))
+      )
+    ),
+    h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},
+      h("div",null,h("label",{style:lbl},"Website"),
+        isCompleted?h(EditableField,{value:form.website||"",onChange:function(v){setAndSave("website",v);},placeholder:"Not set"}):
+        form.website?h("div",{style:{display:"flex",alignItems:"center",gap:8}},h("a",{href:"https://"+form.website.replace(/^https?:\/\//,""),target:"_blank",rel:"noopener noreferrer",style:{fontSize:"13px",color:"#2563eb",textDecoration:"none",fontFamily:F}},form.website+" ↗"),h("button",{onClick:function(){set("website","");},style:{background:"none",border:"none",fontSize:"11px",color:"#9ca3af",cursor:"pointer",textDecoration:"underline",fontFamily:F}},"Change")):
+        h("input",{style:inp(),value:form.website||"",onChange:function(e){set("website",e.target.value);}})
+      )
+    )
+  );
 
-          {tab==="investors"&&(
-            <div>
-              {isCompleted?(
-                <div>
-                  {form.investors.map(inv=>{
-                    const cad=toCad(inv.amount,inv.currency,settings);
-                    const sv=(field,val)=>{ const updated=form.investors.map(i=>i.id===inv.id?{...i,[field]:val}:i); const u={...form,investors:updated}; setForm(u); onSave(u,false); };
-                    return(
-                      <div key={inv.id} style={{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:8}}>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 110px 80px",gap:8,marginBottom:8}}>
-                          <EditableField label="Name" value={inv.name} onChange={v=>sv("name",v)} placeholder="Not set"/>
-                          <EditableField label="Email" value={inv.email||""} onChange={v=>sv("email",v)} placeholder="Not set"/>
-                          <EditableField label="Amount" value={inv.amount?String(inv.amount):""} onChange={v=>sv("amount",v)} type="number"/>
-                          <EditableField label="Currency" value={inv.currency} onChange={v=>sv("currency",v)} options={CURRENCIES}/>
-                        </div>
-                        <EditableField label="Affiliate entity" value={inv.affiliateEntity||""} onChange={v=>sv("affiliateEntity",v)} placeholder="Not set"/>
-                        {cad>0&&<div style={{fontSize:"11px",color:"#6b7280",paddingTop:6,borderTop:"1px solid #f0f0f0",marginTop:8,fontFamily:F}}>{fC(cad)} · Work fee: {fC(cad*CLOSING_FEE)}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-              ):(
-                <div>
-                  <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><button onClick={addInv} style={btn("primary",{padding:"6px 12px"})}>+ Add investor</button></div>
-                  {form.investors.length===0&&<div style={{textAlign:"center",padding:32,color:"#9ca3af",fontSize:"13px",fontFamily:F}}>No investors added yet.</div>}
-                  {form.investors.map(inv=>{
-                    const cad=toCad(inv.amount,inv.currency,settings);
-                    return(
-                      <div key={inv.id} style={{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:8}}>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 110px 80px 32px",gap:8,alignItems:"end",marginBottom:8}}>
-                          <div><label style={lbl}>Name</label><InvNameInput value={inv.name} onChange={(v,m,p)=>handleInvName(inv.id,v,m,p)} profiles={invProfiles}/></div>
-                          <div><label style={lbl}>Email</label><input style={inp()} type="email" value={inv.email||""} onChange={e=>updInv(inv.id,"email",e.target.value)}/></div>
-                          <div><label style={lbl}>Amount</label><input style={inp()} type="number" value={inv.amount} onChange={e=>updInv(inv.id,"amount",e.target.value)}/></div>
-                          <div><label style={lbl}>Currency</label><select style={inp()} value={inv.currency} onChange={e=>updInv(inv.id,"currency",e.target.value)}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></div>
-                          <button onClick={()=>delInv(inv.id)} style={btn("danger",{padding:"7px 8px",height:34,alignSelf:"flex-end"})}>×</button>
-                        </div>
-                        <div><label style={lbl}>Affiliate entity</label><input style={inp()} value={inv.affiliateEntity||""} onChange={e=>updInv(inv.id,"affiliateEntity",e.target.value)} placeholder="Legal entity or leave blank"/></div>
-                        {cad>0&&<div style={{fontSize:"11px",color:"#6b7280",paddingTop:6,borderTop:"1px solid #f0f0f0",marginTop:8,fontFamily:F}}>{fC(cad)} · Work fee: {fC(cad*CLOSING_FEE)}</div>}
-                      </div>
-                    );
-                  })}
-                  {form.investors.length>0&&<div style={{background:"#f0fdf4",borderRadius:10,padding:"11px 14px",marginTop:6}}>
-                    <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",marginBottom:3,fontFamily:F}}><span style={{color:"#374151"}}>Total</span><strong style={{fontFamily:MONO}}>{fC(totalCad)}</strong></div>
-                    <div style={{display:"flex",justifyContent:"space-between",fontSize:"12px",fontFamily:F}}><span style={{color:"#374151"}}>Work fees accrued</span><strong style={{color:"#065f46",fontFamily:MONO}}>{fC(totalCad*CLOSING_FEE)}</strong></div>
-                  </div>}
-                </div>
-              )}
-              <div style={{marginTop:20}}>
-                <label style={lbl}>Transaction co-investors</label>
-                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
-                  {(form.transactionCoInvestors||[]).map((c,i)=>(
-                    <span key={i} style={{background:"#f3f4f6",borderRadius:20,padding:"3px 9px",fontSize:"12px",color:"#374151",fontWeight:500,display:"flex",alignItems:"center",gap:5,fontFamily:F}}>
-                      {c}<button onClick={()=>{ const u=form.transactionCoInvestors.filter((_,idx)=>idx!==i); const updated={...form,transactionCoInvestors:u}; setForm(updated); if(isCompleted)onSave({...updated,threadNotes:notes},false); }} style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:13,padding:0,lineHeight:1}}>×</button>
-                    </span>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:7}}>
-                  <input style={inp({flex:1})} value={newCoInv} onChange={e=>setNewCoInv(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&newCoInv.trim()){ const u=[...(form.transactionCoInvestors||[]),newCoInv.trim()]; const updated={...form,transactionCoInvestors:u}; setForm(updated); if(isCompleted)onSave({...updated,threadNotes:notes},false); setNewCoInv(""); } }} placeholder="Add co-investor..."/>
-                  <button onClick={()=>{ if(!newCoInv.trim())return; const u=[...(form.transactionCoInvestors||[]),newCoInv.trim()]; const updated={...form,transactionCoInvestors:u}; setForm(updated); if(isCompleted)onSave({...updated,threadNotes:notes},false); setNewCoInv(""); }} style={btn("ghost",{padding:"7px 10px",flexShrink:0})}>Add</button>
-                </div>
-              </div>
-            </div>
-          )}
+  var investorsTab = h("div",null,
+    !isCompleted&&h("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:12}},h("button",{onClick:addInv,style:btn("primary",{padding:"6px 12px"})},"+ Add investor")),
+    form.investors.length===0&&h("div",{style:{textAlign:"center",padding:32,color:"#9ca3af",fontSize:"13px",fontFamily:F}},"No investors added yet."),
+    form.investors.map(function(inv){
+      var cad=toCad(inv.amount,inv.currency,settings);
+      if(isCompleted){
+        function sv(field,val){ var updated=form.investors.map(function(i){ return i.id===inv.id?Object.assign({},i,{[field]:val}):i; }); var u=Object.assign({},form,{investors:updated}); setForm(u); props.onSave(u,false); }
+        return h("div",{key:inv.id,style:{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:8}},
+          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 110px 80px",gap:8,marginBottom:8}},
+            h(EditableField,{label:"Name",value:inv.name,onChange:function(v){sv("name",v);},placeholder:"Not set"}),
+            h(EditableField,{label:"Email",value:inv.email||"",onChange:function(v){sv("email",v);},placeholder:"Not set"}),
+            h(EditableField,{label:"Amount",value:inv.amount?String(inv.amount):"",onChange:function(v){sv("amount",v);},type:"number"}),
+            h(EditableField,{label:"Currency",value:inv.currency,onChange:function(v){sv("currency",v);},options:CURRENCIES})
+          ),
+          h(EditableField,{label:"Affiliate entity",value:inv.affiliateEntity||"",onChange:function(v){sv("affiliateEntity",v);},placeholder:"Not set"}),
+          cad>0&&h("div",{style:{fontSize:"11px",color:"#6b7280",paddingTop:6,borderTop:"1px solid #f0f0f0",marginTop:8,fontFamily:F}},fC(cad)+" · Work fee: "+fC(cad*CLOSING_FEE))
+        );
+      }
+      return h("div",{key:inv.id,style:{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:8}},
+        h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 110px 80px 32px",gap:8,alignItems:"end",marginBottom:8}},
+          h("div",null,h("label",{style:lbl},"Name"),h("input",{style:inp(),value:inv.name,onChange:function(e){updInv(inv.id,"name",e.target.value);}})),
+          h("div",null,h("label",{style:lbl},"Email"),h("input",{style:inp(),type:"email",value:inv.email||"",onChange:function(e){updInv(inv.id,"email",e.target.value);}})),
+          h("div",null,h("label",{style:lbl},"Amount"),h("input",{style:inp(),type:"number",value:inv.amount,onChange:function(e){updInv(inv.id,"amount",e.target.value);}})),
+          h("div",null,h("label",{style:lbl},"Currency"),h("select",{style:inp(),value:inv.currency,onChange:function(e){updInv(inv.id,"currency",e.target.value);}},CURRENCIES.map(function(c){return h("option",{key:c},c);}))),
+          h("button",{onClick:function(){delInv(inv.id);},style:btn("danger",{padding:"7px 8px",height:34,alignSelf:"flex-end"})},"×")
+        ),
+        h("div",null,h("label",{style:lbl},"Affiliate entity"),h("input",{style:inp(),value:inv.affiliateEntity||"",onChange:function(e){updInv(inv.id,"affiliateEntity",e.target.value);},placeholder:"Legal entity or leave blank"})),
+        cad>0&&h("div",{style:{fontSize:"11px",color:"#6b7280",paddingTop:6,borderTop:"1px solid #f0f0f0",marginTop:8,fontFamily:F}},fC(cad)+" · Work fee: "+fC(cad*CLOSING_FEE))
+      );
+    }),
+    totalCad>0&&!isCompleted&&h("div",{style:{background:"#f0fdf4",borderRadius:10,padding:"11px 14px",marginTop:6}},
+      h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",marginBottom:3,fontFamily:F}},h("span",null,"Total"),h("strong",{style:{fontFamily:MONO}},fC(totalCad))),
+      h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",fontFamily:F}},h("span",null,"Work fees accrued"),h("strong",{style:{color:"#065f46",fontFamily:MONO}},fC(totalCad*CLOSING_FEE)))
+    ),
+    // Co-investors
+    h("div",{style:{marginTop:20}},
+      h("label",{style:lbl},"Transaction co-investors"),
+      h("div",{style:{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}},
+        (form.transactionCoInvestors||[]).map(function(c,i){
+          return h("span",{key:i,style:{background:"#f3f4f6",borderRadius:20,padding:"3px 9px",fontSize:"12px",color:"#374151",fontWeight:500,display:"flex",alignItems:"center",gap:5,fontFamily:F}},
+            c,
+            h("button",{onClick:function(){ var u=form.transactionCoInvestors.filter(function(_,idx){return idx!==i;}); set("transactionCoInvestors",u); },style:{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:13,padding:0,lineHeight:1}},"×")
+          );
+        })
+      ),
+      h("div",{style:{display:"flex",gap:7}},
+        h("input",{style:inp({flex:1}),value:newCoInv,onChange:function(e){setNewCoInv(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"&&newCoInv.trim()){set("transactionCoInvestors",(form.transactionCoInvestors||[]).concat([newCoInv.trim()]));setNewCoInv("");}},placeholder:"Add co-investor..."}),
+        h("button",{onClick:function(){if(newCoInv.trim()){set("transactionCoInvestors",(form.transactionCoInvestors||[]).concat([newCoInv.trim()]));setNewCoInv("");}},style:btn("ghost",{padding:"7px 10px",flexShrink:0})},"Add")
+      )
+    )
+  );
 
-          {tab==="notes"&&(
-            <div>
-              <div style={{marginBottom:12,padding:"9px 12px",background:"#f9f9f7",borderRadius:8,display:"flex",alignItems:"center",gap:9}}>
-                <span style={{fontSize:"10px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.06em",whiteSpace:"nowrap",fontFamily:F}}>Your name</span>
-                <input style={inp({background:"#fff",padding:"5px 9px",fontSize:"12px"})} value={author} onChange={e=>{ setAuthor(e.target.value); try{localStorage.setItem("itmv-author",e.target.value);}catch(err){} }}/>
-              </div>
-              {notes.length===0&&<div style={{textAlign:"center",padding:28,color:"#9ca3af",fontSize:"13px",fontFamily:F}}>No notes yet.</div>}
-              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
-                {notes.map(n=>(
-                  <NoteRow key={n.id} n={n}
-                    onSaveEdit={(id,text)=>{ const u=notes.map(x=>x.id===id?{...x,text}:x); setNotes(u); onSave({...form,threadNotes:u},false); }}
-                    onDelete={()=>{ const u=notes.filter(x=>x.id!==n.id); setNotes(u); onSave({...form,threadNotes:u},false); }}
-                  />
-                ))}
-                <div ref={notesEnd}/>
-              </div>
-              <div style={{borderTop:"1px solid #f0f0f0",paddingTop:12}}>
-                <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
-                  <select style={inp({width:110})} value={newNoteTag} onChange={e=>setNewNoteTag(e.target.value)}>{NOTE_TAGS.map(t=><option key={t}>{t}</option>)}</select>
-                  <label style={{display:"flex",alignItems:"center",gap:6,fontSize:"12px",color:"#6b7280",cursor:"pointer",fontFamily:F,whiteSpace:"nowrap"}}>
-                    <input type="checkbox" checked={noteDateEnabled} onChange={e=>{ setNoteDateEnabled(e.target.checked); if(!e.target.checked)setNoteDate(""); }} style={{cursor:"pointer"}}/>Add date
-                  </label>
-                  {noteDateEnabled&&<input style={inp({width:160})} type="date" value={noteDate} onChange={e=>setNoteDate(e.target.value)}/>}
-                </div>
-                <textarea style={inp({height:68,resize:"none",marginBottom:8})} value={newNote} onChange={e=>setNewNote(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))addNote(); }} placeholder="Add a note… (Cmd+Enter)"/>
-                <button onClick={addNote} disabled={!newNote.trim()} style={btn("primary",{opacity:newNote.trim()?1:0.4})}>Add note</button>
-              </div>
-            </div>
-          )}
-        </div>
+  var notesTab = h("div",null,
+    h("div",{style:{marginBottom:12,padding:"9px 12px",background:"#f9f9f7",borderRadius:8,display:"flex",alignItems:"center",gap:9}},
+      h("span",{style:{fontSize:"10px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.06em",whiteSpace:"nowrap",fontFamily:F}},"Your name"),
+      h("input",{style:inp({background:"#fff",padding:"5px 9px",fontSize:"12px"}),value:author,onChange:function(e){setAuthor(e.target.value);try{localStorage.setItem("itmv-author",e.target.value);}catch(err){};}})
+    ),
+    notes.length===0&&h("div",{style:{textAlign:"center",padding:28,color:"#9ca3af",fontSize:"13px",fontFamily:F}},"No notes yet."),
+    h("div",{style:{display:"flex",flexDirection:"column",gap:8,marginBottom:12}},
+      notes.map(function(n){
+        return h(NoteRow,{key:n.id,n:n,
+          onSaveEdit:function(id,text){ var u=notes.map(function(x){ return x.id===id?Object.assign({},x,{text:text}):x; }); setNotes(u); props.onSave(Object.assign({},form,{threadNotes:u}),false); },
+          onDelete:function(){ var u=notes.filter(function(x){ return x.id!==n.id; }); setNotes(u); props.onSave(Object.assign({},form,{threadNotes:u}),false); }
+        });
+      }),
+      h("div",{ref:notesEnd})
+    ),
+    h("div",{style:{borderTop:"1px solid #f0f0f0",paddingTop:12}},
+      h("div",{style:{display:"flex",gap:8,marginBottom:8,alignItems:"center",flexWrap:"wrap"}},
+        h("select",{style:inp({width:110}),value:newNoteTag,onChange:function(e){setNewNoteTag(e.target.value);}},NOTE_TAGS.map(function(t){return h("option",{key:t},t);})),
+        h("label",{style:{display:"flex",alignItems:"center",gap:6,fontSize:"12px",color:"#6b7280",cursor:"pointer",fontFamily:F,whiteSpace:"nowrap"}},
+          h("input",{type:"checkbox",checked:noteDateEnabled,onChange:function(e){setNoteDateEnabled(e.target.checked);if(!e.target.checked)setNoteDate("");},style:{cursor:"pointer"}}),
+          "Add date"
+        ),
+        noteDateEnabled&&h("input",{style:inp({width:160}),type:"date",value:noteDate,onChange:function(e){setNoteDate(e.target.value);}})
+      ),
+      h("textarea",{style:inp({height:68,resize:"none",marginBottom:8}),value:newNote,onChange:function(e){setNewNote(e.target.value);},onKeyDown:function(e){if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))addNote();},placeholder:"Add a note… (Cmd+Enter)"}),
+      h("button",{onClick:addNote,disabled:!newNote.trim(),style:btn("primary",{opacity:newNote.trim()?1:0.4})},"Add note")
+    )
+  );
 
-        {/* Footer */}
-        <div style={{padding:"12px 28px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:"1px solid #f0f0f0",flexShrink:0}}>
-          <div>{form.id&&<button onClick={()=>onDelete(form.id)} style={btn("danger")}>Delete</button>}</div>
-          <div style={{display:"flex",gap:8}}>
-            {form.id&&!isCompleted&&form.stage!=="Passed"&&(
-              <>
-                <button onClick={()=>onPass(form.id,form.stage)} style={btn("ghost")}>Mark passed</button>
-                <button onClick={()=>onComplete({...form,threadNotes:notes})} style={btn("green")}>Mark completed</button>
-              </>
-            )}
-            <button onClick={onClose} style={btn("ghost")}>{isCompleted?"Close":"Cancel"}</button>
-            {!isCompleted&&<button onClick={handleSave} style={btn("primary")}>{form.id?"Save":"Add deal"}</button>}
-          </div>
-        </div>
-      </div>
-    </div>
+  return h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16}},
+    h("div",{style:{background:"#fff",borderRadius:14,width:"100%",maxWidth:940,boxShadow:"0 24px 64px rgba(0,0,0,0.15)",fontFamily:F,maxHeight:"94vh",display:"flex",flexDirection:"column"}},
+      h("div",{style:{padding:"20px 28px 0",flexShrink:0}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+          h("div",{style:{display:"flex",alignItems:"center",gap:10}},
+            h("span",{style:{fontSize:"17px",fontWeight:700,color:"#111",fontFamily:F}},form.name||"New deal"),
+            h(StageBadge,{stage:form.stage,passedFrom:form.stage==="Passed"?form.passedFromStage:null}),
+            autoSaveMsg&&h("span",{style:{fontSize:"11px",color:"#065f46",fontWeight:600,fontFamily:F}},"✓ "+autoSaveMsg)
+          ),
+          h("button",{onClick:props.onClose,style:{background:"none",border:"none",cursor:"pointer",fontSize:22,color:"#9ca3af",lineHeight:1,padding:"0 0 0 12px"}},"×")
+        ),
+        tabBar
+      ),
+      h("div",{style:{overflowY:"auto",flex:1,padding:"18px 28px"}},
+        tab==="details"&&detailsTab,
+        tab==="investors"&&investorsTab,
+        tab==="notes"&&notesTab
+      ),
+      h("div",{style:{padding:"12px 28px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:"1px solid #f0f0f0",flexShrink:0}},
+        h("div",null,form.id&&h("button",{onClick:function(){props.onDelete(form.id);},style:btn("danger")},"Delete")),
+        h("div",{style:{display:"flex",gap:8}},
+          form.id&&!isCompleted&&form.stage!=="Passed"&&h("button",{onClick:function(){props.onPass(form.id,form.stage);},style:btn("ghost")},"Mark passed"),
+          form.id&&!isCompleted&&form.stage!=="Passed"&&h("button",{onClick:function(){props.onComplete(Object.assign({},form,{threadNotes:notes}));},style:btn("green")},"Mark completed"),
+          h("button",{onClick:props.onClose,style:btn("ghost")},isCompleted?"Close":"Cancel"),
+          !isCompleted&&h("button",{onClick:handleSave,style:btn("primary")},form.id?"Save":"Add deal")
+        )
+      )
+    )
   );
 }
 
-// ── Investments Page ──────────────────────────────────────────────────────────
-function InvestmentsPage({deals,setDeals,save,settings,invProfiles,setInvProfiles,scenarios,onSaveScenarios}){
-  const [modal,setModal]=useState(null);
-  const [completionDeal,setCompletionDeal]=useState(null);
-  const [showPassed,setShowPassed]=useState(false);
-  const [filterStage,setFilterStage]=useState("All");
+// ── Completion Modal ─────────────────────────────────────────────
+function CompletionModal(props){
+  var deal=props.deal, settings=props.settings;
+  var DRAFT_KEY="itmv-cdraft-"+deal.id;
+  var ls=useState(false); var loaded=ls[0],setLoaded=ls[1];
+  var ps=useState(""); var postMoney=ps[0],setPostMoney=ps[1];
+  var trs=useState(""); var totalRound=trs[0],setTotalRound=trs[1];
+  var os=useState(""); var ownership=os[0],setOwnership=os[1];
+  var cds=useState(new Date().toISOString().split("T")[0]); var closeDate=cds[0],setCloseDate=cds[1];
+  var es=useState(""); var err=es[0],setErr=es[1];
+  useEffect(function(){
+    try{ var saved=localStorage.getItem(DRAFT_KEY); if(saved){ var d=JSON.parse(saved); setPostMoney(d.postMoney||""); setTotalRound(d.totalRound||""); setOwnership(d.ownership||""); setCloseDate(d.closeDate||new Date().toISOString().split("T")[0]); } else if(deal.completionData){ var cd=deal.completionData; setPostMoney(cd.postMoney?String(cd.postMoney):""); setTotalRound(cd.totalRound?String(cd.totalRound):""); setOwnership(cd.ownership?String(cd.ownership):""); setCloseDate(cd.closeDate||new Date().toISOString().split("T")[0]); } }catch(e){}
+    setLoaded(true);
+  },[]);
+  function saveDraft(pm,tr,ow,cd){ try{localStorage.setItem(DRAFT_KEY,JSON.stringify({postMoney:pm,totalRound:tr,ownership:ow,closeDate:cd}));}catch(e){} }
+  var totalCad=deal.investors.reduce(function(s,i){ return s+toCad(i.amount,i.currency,settings); },0);
+  var hp=settings.hurdlePct!=null?settings.hurdlePct:5;
+  var suggested=postMoney&&totalCad?((totalCad/Number(postMoney))*100).toFixed(2):null;
+  function confirm(){
+    if(!ownership||Number(ownership)<=0){ setErr("ITMV Ownership % is required."); return; }
+    try{localStorage.removeItem(DRAFT_KEY);}catch(e){}
+    props.onConfirm({postMoney:Number(postMoney)||0,totalRound:Number(totalRound)||0,ownership:Number(ownership),totalCad:totalCad,closeDate:closeDate});
+  }
+  if(!loaded) return null;
+  return h("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:20}},
+    h("div",{style:{background:"#fff",borderRadius:14,padding:"28px 30px",width:"100%",maxWidth:520,fontFamily:F,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 32px 80px rgba(0,0,0,0.25)"}},
+      h("h2",{style:{margin:"0 0 20px",fontSize:"17px",fontWeight:700,color:"#111",fontFamily:F}},"Complete deal — "+deal.name),
+      h("div",{style:{background:"#f9f9f7",borderRadius:10,padding:"12px 14px",marginBottom:18}},
+        h("div",{style:{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8,fontFamily:F}},"Investor summary"),
+        deal.investors.length===0&&h("div",{style:{fontSize:"12px",color:"#9ca3af",fontFamily:F}},"No investors added yet."),
+        deal.investors.map(function(i){ var cad=toCad(i.amount,i.currency,settings); return h("div",{key:i.id,style:{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#374151",padding:"3px 0",borderBottom:"1px solid #f0f0f0",fontFamily:F}},h("span",{style:{fontWeight:600}},i.name||"Unnamed"),h("span",{style:{fontFamily:MONO}},fA(i.amount,i.currency)+" ("+fC(cad)+")")); }),
+        h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",fontWeight:700,paddingTop:8,marginTop:4,fontFamily:F}},h("span",{style:{color:"#111"}},"Total"),h("span",{style:{fontFamily:MONO}},fC(totalCad))),
+        h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",fontWeight:700,fontFamily:F}},h("span",{style:{color:"#065f46"}},"Work fee (2%)"),h("span",{style:{color:"#065f46",fontFamily:MONO}},fC(totalCad*CLOSING_FEE))),
+        h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#6b7280",paddingTop:4,marginTop:4,borderTop:"1px solid #f0f0f0",fontFamily:F}},h("span",null,"Investor hurdle ("+hp+"% p.a.)"),h("span",{style:{fontWeight:600,fontFamily:MONO}},fC(totalCad*(hp/100))))
+      ),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}},
+        h("div",null,h("label",{style:lbl},"Post-money valuation (C$)"),h("input",{style:inp(),type:"number",value:postMoney,onChange:function(e){var v=e.target.value;setPostMoney(v);saveDraft(v,totalRound,ownership,closeDate);},placeholder:"Optional"})),
+        h("div",null,h("label",{style:lbl},"Total round size (C$)"),h("input",{style:inp(),type:"number",value:totalRound,onChange:function(e){var v=e.target.value;setTotalRound(v);saveDraft(postMoney,v,ownership,closeDate);},placeholder:"Optional"}))
+      ),
+      h("div",{style:{marginBottom:14}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}},
+          h("label",{style:lbl},"ITMV Ownership % *"),
+          suggested&&h("button",{onClick:function(){setOwnership(suggested);saveDraft(postMoney,totalRound,suggested,closeDate);},style:{background:"none",border:"none",fontSize:"10px",color:"#2563eb",cursor:"pointer",fontFamily:F}},"Use suggested: "+suggested+"%")
+        ),
+        h("input",{style:inp(),type:"number",step:"0.01",value:ownership,onChange:function(e){var v=e.target.value;setOwnership(v);saveDraft(postMoney,totalRound,v,closeDate);},placeholder:"e.g. 2.50"})
+      ),
+      h("div",{style:{marginBottom:20}},h("label",{style:lbl},"Close date"),h("input",{style:inp(),type:"date",value:closeDate,onChange:function(e){var v=e.target.value;setCloseDate(v);saveDraft(postMoney,totalRound,ownership,v);}})),
+      err&&h("div",{style:{fontSize:"12px",color:"#ef4444",marginBottom:12,fontFamily:F}},err),
+      h("div",{style:{display:"flex",gap:8,justifyContent:"flex-end"}},
+        h("button",{onClick:props.onCancel,style:btn("ghost")},"Save & close"),
+        h("button",{onClick:confirm,style:btn("green",{padding:"9px 20px",fontSize:"13px"})},"Confirm & close deal")
+      )
+    )
+  );
+}
 
-  const completed=deals.filter(d=>d.stage==="Completed");
-  const passed=deals.filter(d=>d.stage==="Passed");
-  const active=deals.filter(d=>ACTIVE_STAGES.includes(d.stage));
-  const deployedCad=completed.reduce((s,d)=>s+((d.completionData&&d.completionData.totalCad)||0),0);
-  const committedCad=active.reduce((s,d)=>s+d.investors.reduce((ss,i)=>ss+toCad(i.amount,i.currency,settings),0),0);
-  const visible=active.filter(d=>filterStage==="All"||d.stage===filterStage);
+// ── Investments Page ─────────────────────────────────────────────
+function InvestmentsPage(props){
+  var deals=props.deals, settings=props.settings;
+  var ms=useState(null); var modal=ms[0],setModal=ms[1];
+  var cs=useState(null); var completionDeal=cs[0],setCompletionDeal=cs[1];
+  var sps=useState(false); var showPassed=sps[0],setShowPassed=sps[1];
+  var fss=useState("All"); var filterStage=fss[0],setFilterStage=fss[1];
 
-  function saveDeal(form,close=true){
-    if(form.id){
-      const u=deals.map(x=>x.id===form.id?form:x); setDeals(u); save(u);
-    } else {
-      const newDeal={...form,id:uid(),threadNotes:form.threadNotes||[],investors:form.investors||[],transactionCoInvestors:form.transactionCoInvestors||[],passedFromStage:""};
-      const u=[...deals,newDeal]; setDeals(u); save(u);
-    }
+  var completed=deals.filter(function(d){ return d.stage==="Completed"; });
+  var passed=deals.filter(function(d){ return d.stage==="Passed"; });
+  var active=deals.filter(function(d){ return ACTIVE_STAGES.indexOf(d.stage)!==-1; });
+  var deployedCad=completed.reduce(function(s,d){ return s+((d.completionData&&d.completionData.totalCad)||0); },0);
+  var committedCad=active.reduce(function(s,d){ return s+d.investors.reduce(function(ss,i){ return ss+toCad(i.amount,i.currency,settings); },0); },0);
+  var visible=active.filter(function(d){ return filterStage==="All"||d.stage===filterStage; });
+
+  var empty={id:null,name:"",stage:"Sourcing",companyStage:"Seed",sector:"SaaS",website:"",investors:[],transactionCoInvestors:[],managementMeeting:"No",meetingDate:"",itmvReferral:"",itmvReferralOther:"",externalReferral:"",externalReferralEmail:"",relationshipSource:"",threadNotes:[],completionData:null,contactName:"",contactRole:"Founder",investType:"SAFE",investTypeOther:"",hq:"Canada",hqOther:"",passedFromStage:"",isBridge:false};
+
+  function saveDeal(form,close){
+    close=close!==false;
+    var u;
+    if(form.id){ u=deals.map(function(x){ return x.id===form.id?form:x; }); }
+    else { var nd=Object.assign({},form,{id:uid(),threadNotes:form.threadNotes||[],investors:form.investors||[],transactionCoInvestors:form.transactionCoInvestors||[],passedFromStage:""}); u=deals.concat([nd]); }
+    props.setDeals(u); props.save(u);
     if(close) setModal(null);
   }
-  function delDeal(id){ const u=deals.filter(x=>x.id!==id); setDeals(u); save(u); setModal(null); }
-  function passDeal(id,fromStage){ const u=deals.map(x=>x.id===id?{...x,stage:"Passed",passedFromStage:fromStage||x.stage}:x); setDeals(u); save(u); setModal(null); }
-
-  const completeDeal=useCallback(data=>{
-    setCompletionDeal(prev=>{
+  function delDeal(id){ var u=deals.filter(function(x){ return x.id!==id; }); props.setDeals(u); props.save(u); setModal(null); }
+  function passDeal(id,fromStage){ var u=deals.map(function(x){ return x.id===id?Object.assign({},x,{stage:"Passed",passedFromStage:fromStage||x.stage}):x; }); props.setDeals(u); props.save(u); setModal(null); }
+  var completeDeal=useCallback(function(data){
+    setCompletionDeal(function(prev){
       if(!prev) return null;
-      const u=deals.map(x=>x.id===prev.id?{...x,stage:"Completed",completionData:data}:x);
-      setDeals(u); save(u); setModal(null); return null;
+      var u=deals.map(function(x){ return x.id===prev.id?Object.assign({},x,{stage:"Completed",completionData:data}):x; });
+      props.setDeals(u); props.save(u); setModal(null); return null;
     });
-  },[deals,save]);
-
-  const empty={id:null,name:"",stage:"Sourcing",companyStage:"Seed",sector:"SaaS",website:"",investors:[],transactionCoInvestors:[],managementMeeting:"No",meetingDate:"",itmvReferral:"",itmvReferralOther:"",externalReferral:"",externalReferralEmail:"",relationshipSource:"",threadNotes:[],completionData:null,contactName:"",contactRole:"Founder",investType:"SAFE",investTypeOther:"",hq:"Canada",hqOther:"",passedFromStage:"",isBridge:false};
+  },[deals,props.save]);
 
   function renderCard(d,onClick,style){
-    const totalCad=d.investors.reduce((s,i)=>s+toCad(i.amount,i.currency,settings),0);
-    const investType=d.investType&&d.investType!=="Other"?d.investType:(d.investTypeOther||null);
-    const stageVal=d.companyStage?(d.isBridge?d.companyStage+" (Bridge)":d.companyStage):null;
-    const rows=[{label:"Stage:",value:stageVal},{label:"Type:",value:investType},{label:"Proposed $:",value:totalCad>0?fC(totalCad):null}].filter(r=>r.value);
-    return(
-      <div key={d.id} onClick={onClick} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 12px",cursor:"pointer",marginBottom:7,...(style||{})}}
-        onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 14px rgba(0,0,0,0.08)";e.currentTarget.style.transform="translateY(-1px)";}}
-        onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="none";}}>
-        <div style={{fontWeight:700,fontSize:"12px",color:"#111",marginBottom:rows.length?6:0,fontFamily:F}}>{d.name}</div>
-        <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          {rows.length===0?<span style={{fontSize:"10px",color:"#d1d5db",fontFamily:F}}>No details yet</span>:rows.map(r=>(
-            <div key={r.label} style={{display:"grid",gridTemplateColumns:"80px 1fr",columnGap:4,alignItems:"baseline"}}>
-              <span style={{fontSize:"9px",fontWeight:600,color:"#9ca3af",fontFamily:F,whiteSpace:"nowrap"}}>{r.label}</span>
-              <span style={{fontSize:"10px",fontWeight:500,color:"#374151",fontFamily:r.label==="Proposed $:"?MONO:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{r.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+    var totalCad=d.investors.reduce(function(s,i){ return s+toCad(i.amount,i.currency,settings); },0);
+    var rows=[{label:"Stage:",value:d.companyStage?(d.isBridge?d.companyStage+" (Bridge)":d.companyStage):null},{label:"Type:",value:d.investType&&d.investType!=="Other"?d.investType:(d.investTypeOther||null)},{label:"Proposed $:",value:totalCad>0?fC(totalCad):null}].filter(function(r){ return r.value; });
+    return h("div",{key:d.id,onClick:onClick,style:Object.assign({background:"#fff",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px 12px",cursor:"pointer",marginBottom:7},style||{}),
+      onMouseEnter:function(e){e.currentTarget.style.boxShadow="0 4px 14px rgba(0,0,0,0.08)";e.currentTarget.style.transform="translateY(-1px)";},
+      onMouseLeave:function(e){e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="none";}},
+      h("div",{style:{fontWeight:700,fontSize:"12px",color:"#111",marginBottom:rows.length?6:0,fontFamily:F}},d.name),
+      rows.length===0?h("span",{style:{fontSize:"10px",color:"#d1d5db",fontFamily:F}},"No details yet"):
+      rows.map(function(r){ return h("div",{key:r.label,style:{display:"grid",gridTemplateColumns:"80px 1fr",columnGap:4,alignItems:"baseline"}},h("span",{style:{fontSize:"9px",fontWeight:600,color:"#9ca3af",fontFamily:F,whiteSpace:"nowrap"}},r.label),h("span",{style:{fontSize:"10px",fontWeight:500,color:"#374151",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},r.value)); })
     );
   }
 
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7",boxSizing:"border-box"}}>
-      {completionDeal&&<CompletionModal deal={completionDeal} onConfirm={completeDeal} onCancel={()=>setCompletionDeal(null)} settings={settings}/>}
-      {modal&&<DealModal deal={modal} onSave={saveDeal} onClose={()=>setModal(null)} onDelete={delDeal} onPass={passDeal} onComplete={d=>{setModal(null);setCompletionDeal(d);}} settings={settings} invProfiles={invProfiles} setInvProfiles={setInvProfiles} deals={deals} scenarios={scenarios[modal.id]||[]} onSaveScenarios={onSaveScenarios}/>}
-
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26}}>
-        <h1 style={{margin:0,fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Investments</h1>
-        <button onClick={()=>setModal({...empty})} style={btn("primary")}>+ New deal</button>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12,marginBottom:24}}>
-        <StatCard label="Sourcing" value={deals.filter(d=>d.stage==="Sourcing").length}/>
-        <StatCard label="Diligence" value={deals.filter(d=>d.stage==="Diligence").length}/>
-        <StatCard label="Closing" value={deals.filter(d=>d.stage==="Closing Process").length}/>
-        <StatCard label="Completed" value={completed.length}/>
-        <StatCard label="Capital deployed" value={deployedCad>0?fC(deployedCad):"C$0"} highlight/>
-        <StatCard label="Pipeline committed" value={committedCad>0?fC(committedCad):"C$0"}/>
-      </div>
-
-      {/* Closed deals banner */}
-      <div style={{background:"linear-gradient(135deg,#166534 0%,#16a34a 100%)",borderRadius:14,padding:"22px 24px",marginBottom:28}}>
-        <div style={{marginBottom:completed.length>0?16:0}}>
-          <div style={{fontSize:"11px",fontWeight:700,color:"rgba(255,255,255,0.6)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4,fontFamily:F}}>Closed Deals</div>
-          <div style={{display:"flex",gap:20,alignItems:"baseline"}}>
-            <div><span style={{fontSize:"24px",fontWeight:700,color:"#fff",fontFamily:MONO}}>{completed.length}</span><span style={{fontSize:"12px",color:"rgba(255,255,255,0.6)",marginLeft:6,fontFamily:F}}>{completed.length===1?"deal":"deals"}</span></div>
-            <div><span style={{fontSize:"24px",fontWeight:700,color:"#6ee7b7",fontFamily:MONO}}>{fC(deployedCad)}</span><span style={{fontSize:"12px",color:"rgba(255,255,255,0.6)",marginLeft:6,fontFamily:F}}>deployed</span></div>
-          </div>
-        </div>
-        {completed.length===0
-          ?<div style={{marginTop:14,padding:16,background:"rgba(255,255,255,0.07)",borderRadius:10,border:"1px dashed rgba(255,255,255,0.2)",textAlign:"center"}}><span style={{fontSize:"12px",color:"rgba(255,255,255,0.4)",fontFamily:F}}>No closed deals yet</span></div>
-          :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:8}}>
-            {completed.map(d=>renderCard(d,()=>setModal(d),{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.15)"}))}
-          </div>}
-      </div>
-
-      {/* Pipeline */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <h2 style={{margin:0,fontSize:"14px",fontWeight:700,color:"#111",fontFamily:F}}>Pipeline</h2>
-        <div style={{display:"flex",gap:6}}>
-          {["All",...ACTIVE_STAGES].map(s=>(
-            <button key={s} onClick={()=>setFilterStage(s)} style={{padding:"3px 10px",borderRadius:20,border:filterStage===s?"1.5px solid #111":"1.5px solid #e5e7eb",background:filterStage===s?"#111":"#fff",color:filterStage===s?"#fff":"#374151",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:F}}>{s}</button>
-          ))}
-        </div>
-      </div>
-
-      {visible.length===0&&<div style={{textAlign:"center",padding:40,color:"#9ca3af",fontSize:"13px",fontFamily:F,background:"#fff",borderRadius:12,border:"1px dashed #e5e7eb"}}>No deals in this stage. <button onClick={()=>setModal({...empty})} style={{background:"none",border:"none",color:"#2563eb",cursor:"pointer",fontSize:"13px",fontFamily:F,textDecoration:"underline"}}>Add one →</button></div>}
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
-        {ACTIVE_STAGES.filter(s=>filterStage==="All"||filterStage===s).map(stage=>{
-          const stageDeal=visible.filter(d=>d.stage===stage);
-          return(
-            <div key={stage}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <StageBadge stage={stage}/>
-                <span style={{fontSize:"11px",color:"#9ca3af",fontFamily:F}}>{stageDeal.length}</span>
-              </div>
-              {stageDeal.map(d=>renderCard(d,()=>setModal(d)))}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Passed deals */}
-      {passed.length>0&&(
-        <div style={{marginTop:28}}>
-          <button onClick={()=>setShowPassed(p=>!p)} style={{background:"none",border:"none",cursor:"pointer",fontSize:"12px",color:"#9ca3af",fontFamily:F,padding:0,marginBottom:10}}>
-            {showPassed?"▾":"▸"} Passed deals ({passed.length})
-          </button>
-          {showPassed&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:8}}>{passed.map(d=>renderCard(d,()=>setModal(d),{opacity:0.7}))}</div>}
-        </div>
-      )}
-    </div>
+  return h("div",{style:{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7",boxSizing:"border-box"}},
+    completionDeal&&h(CompletionModal,{deal:completionDeal,onConfirm:completeDeal,onCancel:function(){setCompletionDeal(null);},settings:settings}),
+    modal&&h(DealModal,{deal:modal,onSave:saveDeal,onClose:function(){setModal(null);},onDelete:delDeal,onPass:passDeal,onComplete:function(d){setModal(null);setCompletionDeal(d);},settings:settings,invProfiles:props.invProfiles,setInvProfiles:props.setInvProfiles,deals:deals,scenarios:props.scenarios[modal.id]||[],onSaveScenarios:props.onSaveScenarios}),
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26}},
+      h("h1",{style:{margin:0,fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}},"Investments"),
+      h("button",{onClick:function(){setModal(Object.assign({},empty));},style:btn("primary")},"+ New deal")
+    ),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12,marginBottom:24}},
+      h(StatCard,{label:"Sourcing",value:deals.filter(function(d){return d.stage==="Sourcing";}).length}),
+      h(StatCard,{label:"Diligence",value:deals.filter(function(d){return d.stage==="Diligence";}).length}),
+      h(StatCard,{label:"Closing",value:deals.filter(function(d){return d.stage==="Closing Process";}).length}),
+      h(StatCard,{label:"Completed",value:completed.length}),
+      h(StatCard,{label:"Capital deployed",value:deployedCad>0?fC(deployedCad):"C$0",highlight:true}),
+      h(StatCard,{label:"Pipeline committed",value:committedCad>0?fC(committedCad):"C$0"})
+    ),
+    h("div",{style:{background:"linear-gradient(135deg,#166534 0%,#16a34a 100%)",borderRadius:14,padding:"22px 24px",marginBottom:28}},
+      h("div",{style:{marginBottom:completed.length>0?16:0}},
+        h("div",{style:{fontSize:"11px",fontWeight:700,color:"rgba(255,255,255,0.6)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4,fontFamily:F}},"Closed Deals"),
+        h("div",{style:{display:"flex",gap:20,alignItems:"baseline"}},
+          h("div",null,h("span",{style:{fontSize:"24px",fontWeight:700,color:"#fff",fontFamily:MONO}},completed.length),h("span",{style:{fontSize:"12px",color:"rgba(255,255,255,0.6)",marginLeft:6,fontFamily:F}},completed.length===1?"deal":"deals")),
+          h("div",null,h("span",{style:{fontSize:"24px",fontWeight:700,color:"#6ee7b7",fontFamily:MONO}},fC(deployedCad)),h("span",{style:{fontSize:"12px",color:"rgba(255,255,255,0.6)",marginLeft:6,fontFamily:F}},"deployed"))
+        )
+      ),
+      completed.length===0
+        ? h("div",{style:{marginTop:14,padding:16,background:"rgba(255,255,255,0.07)",borderRadius:10,border:"1px dashed rgba(255,255,255,0.2)",textAlign:"center"}},h("span",{style:{fontSize:"12px",color:"rgba(255,255,255,0.4)",fontFamily:F}},"No closed deals yet"))
+        : h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:8}},completed.map(function(d){ return renderCard(d,function(){setModal(d);},{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.15)"}); }))
+    ),
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}},
+      h("h2",{style:{margin:0,fontSize:"14px",fontWeight:700,color:"#111",fontFamily:F}},"Pipeline"),
+      h("div",{style:{display:"flex",gap:6}},
+        ["All"].concat(ACTIVE_STAGES).map(function(s){ return h("button",{key:s,onClick:function(){setFilterStage(s);},style:{padding:"3px 10px",borderRadius:20,border:filterStage===s?"1.5px solid #111":"1.5px solid #e5e7eb",background:filterStage===s?"#111":"#fff",color:filterStage===s?"#fff":"#374151",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:F}},s); })
+      )
+    ),
+    visible.length===0&&h("div",{style:{textAlign:"center",padding:40,color:"#9ca3af",fontSize:"13px",fontFamily:F,background:"#fff",borderRadius:12,border:"1px dashed #e5e7eb"}},"No deals in this stage."),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}},
+      ACTIVE_STAGES.filter(function(s){ return filterStage==="All"||filterStage===s; }).map(function(stage){
+        var stageDeal=visible.filter(function(d){ return d.stage===stage; });
+        return h("div",{key:stage},
+          h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},h(StageBadge,{stage:stage}),h("span",{style:{fontSize:"11px",color:"#9ca3af",fontFamily:F}},stageDeal.length)),
+          stageDeal.map(function(d){ return renderCard(d,function(){setModal(d);}); })
+        );
+      })
+    ),
+    passed.length>0&&h("div",{style:{marginTop:28}},
+      h("button",{onClick:function(){setShowPassed(function(p){return !p;});},style:{background:"none",border:"none",cursor:"pointer",fontSize:"12px",color:"#9ca3af",fontFamily:F,padding:0,marginBottom:10}},(showPassed?"▾":"▸")+" Passed deals ("+passed.length+")"),
+      showPassed&&h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:8}},passed.map(function(d){ return renderCard(d,function(){setModal(d);},{opacity:0.7}); }))
+    )
   );
 }
 
-// ── Investors Page ────────────────────────────────────────────────────────────
-function InvestorsPage({investors,setInvestors,saveInvestors,settings}){
-  const [modal,setModal]=useState(null);
-  const [form,setForm]=useState({id:null,name:"",email:"",phone:"",entity:"",commitmentCad:"",currency:"CAD",onboardingStage:"",notes:""});
-
-  function openNew(){ setForm({id:null,name:"",email:"",phone:"",entity:"",commitmentCad:"",currency:"CAD",onboardingStage:"",notes:""}); setModal("edit"); }
-  function openEdit(inv){ setForm({...inv}); setModal("edit"); }
-  function save(){
-    if(!form.name.trim()) return;
-    let u;
-    if(form.id){ u=investors.map(x=>x.id===form.id?form:x); }
-    else { u=[...investors,{...form,id:uid()}]; }
-    setInvestors(u); saveInvestors(u); setModal(null);
-  }
-  function del(id){ const u=investors.filter(x=>x.id!==id); setInvestors(u); saveInvestors(u); setModal(null); }
-
-  const totalCommitted=investors.reduce((s,i)=>s+toCad(i.commitmentCad,i.currency,settings),0);
-
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}}>
-      {modal==="edit"&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16}}>
-          <div style={{background:"#fff",borderRadius:14,padding:"28px 30px",width:"100%",maxWidth:480,fontFamily:F,boxShadow:"0 24px 64px rgba(0,0,0,0.15)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <span style={{fontSize:"16px",fontWeight:700,color:"#111",fontFamily:F}}>{form.id?"Edit investor":"Add investor"}</span>
-              <button onClick={()=>setModal(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:"#9ca3af"}}>×</button>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              <div><label style={lbl}>Name *</label><input style={inp()} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Full name"/></div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                <div><label style={lbl}>Email</label><input style={inp()} type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))}/></div>
-                <div><label style={lbl}>Phone</label><input style={inp()} value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/></div>
-              </div>
-              <div><label style={lbl}>Entity / fund</label><input style={inp()} value={form.entity} onChange={e=>setForm(f=>({...f,entity:e.target.value}))}/></div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:8}}>
-                <div><label style={lbl}>Commitment amount</label><input style={inp()} type="number" value={form.commitmentCad} onChange={e=>setForm(f=>({...f,commitmentCad:e.target.value}))}/></div>
-                <div><label style={lbl}>Currency</label><select style={inp()} value={form.currency} onChange={e=>setForm(f=>({...f,currency:e.target.value}))}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></div>
-              </div>
-              <div><label style={lbl}>Notes</label><textarea style={inp({height:60,resize:"none"})} value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/></div>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",marginTop:20}}>
-              <div>{form.id&&<button onClick={()=>del(form.id)} style={btn("danger")}>Delete</button>}</div>
-              <div style={{display:"flex",gap:8}}><button onClick={()=>setModal(null)} style={btn("ghost")}>Cancel</button><button onClick={save} style={btn("primary")}>Save</button></div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26}}>
-        <h1 style={{margin:0,fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Investors</h1>
-        <button onClick={openNew} style={btn("primary")}>+ Add investor</button>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
-        <StatCard label="Total LPs" value={investors.length}/>
-        <StatCard label="Total commitments" value={fC(totalCommitted)} highlight/>
-      </div>
-
-      {investors.length===0
-        ?<div style={{textAlign:"center",padding:48,color:"#9ca3af",fontSize:"13px",fontFamily:F,background:"#fff",borderRadius:12,border:"1px dashed #e5e7eb"}}>No investors yet. Add your first LP.</div>
-        :<div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {investors.map(inv=>{
-            const cad=toCad(inv.commitmentCad,inv.currency,settings);
-            return(
-              <div key={inv.id} onClick={()=>openEdit(inv)} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:10,padding:"14px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}
-                onMouseEnter={e=>e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,0.06)"} onMouseLeave={e=>e.currentTarget.style.boxShadow="none"}>
-                <div>
-                  <div style={{fontSize:"13px",fontWeight:700,color:"#111",marginBottom:2,fontFamily:F}}>{inv.name}</div>
-                  <div style={{fontSize:"11px",color:"#6b7280",fontFamily:F}}>{[inv.entity,inv.email].filter(Boolean).join(" · ")}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  {cad>0&&<div style={{fontSize:"13px",fontWeight:700,color:"#111",fontFamily:MONO}}>{fC(cad)}</div>}
-                </div>
-              </div>
-            );
-          })}
-        </div>}
-    </div>
+// ── Settings Page ────────────────────────────────────────────────
+function SettingsPage(props){
+  var fs=useState(Object.assign({},props.settings)); var form=fs[0],setForm=fs[1];
+  var ss=useState(false); var saved=ss[0],setSaved=ss[1];
+  function save(){ props.onSave(form); setSaved(true); setTimeout(function(){setSaved(false);},2000); }
+  return h("div",{style:{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}},
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}},
+      h("h1",{style:{margin:0,fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}},"Settings"),
+      saved&&h("span",{style:{fontSize:"12px",color:"#065f46",fontWeight:600,fontFamily:F}},"✓ Saved")
+    ),
+    h("div",{style:{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"22px 24px",maxWidth:480}},
+      h("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+        h("div",null,h("label",{style:lbl},"USD → CAD rate"),h("input",{style:inp(),type:"number",step:"0.01",value:form.usdCad,onChange:function(e){setForm(function(f){return Object.assign({},f,{usdCad:Number(e.target.value)});});}})),
+        h("div",null,h("label",{style:lbl},"Default currency"),h("select",{style:inp(),value:form.defaultCurrency,onChange:function(e){setForm(function(f){return Object.assign({},f,{defaultCurrency:e.target.value});});}},CURRENCIES.map(function(c){return h("option",{key:c},c);}))),
+        h("div",null,h("label",{style:lbl},"Hurdle rate % (p.a.)"),h("input",{style:inp(),type:"number",step:"0.1",value:form.hurdlePct,onChange:function(e){setForm(function(f){return Object.assign({},f,{hurdlePct:Number(e.target.value)});});}})),
+        h("div",null,h("label",{style:lbl},"Carry %"),h("input",{style:inp(),type:"number",step:"0.1",value:form.carryPct,onChange:function(e){setForm(function(f){return Object.assign({},f,{carryPct:Number(e.target.value)});});}})),
+        h("button",{onClick:save,style:btn("primary",{alignSelf:"flex-start",padding:"9px 20px"})},"Save settings")
+      )
+    )
   );
 }
 
-// ── Performance Page ──────────────────────────────────────────────────────────
-function PerformancePage({deals,settings}){
-  const completed=deals.filter(d=>d.stage==="Completed"&&d.completionData);
-  const totalDeployed=completed.reduce((s,d)=>s+(d.completionData.totalCad||0),0);
-  const totalFees=completed.reduce((s,d)=>s+(d.completionData.totalCad||0)*CLOSING_FEE,0);
-  const hp=settings.hurdlePct||5; const cp=settings.carryPct||20;
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}}>
-      <h1 style={{margin:"0 0 24px",fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Performance</h1>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:28}}>
-        <StatCard label="Completed deals" value={completed.length}/>
-        <StatCard label="Total deployed" value={fC(totalDeployed)} highlight/>
-        <StatCard label="Work fees accrued" value={fC(totalFees)}/>
-        <StatCard label="Hurdle rate" value={`${hp}% p.a.`}/>
-      </div>
-      {completed.length===0
-        ?<div style={{textAlign:"center",padding:48,color:"#9ca3af",fontSize:"13px",fontFamily:F,background:"#fff",borderRadius:12,border:"1px dashed #e5e7eb"}}>No completed deals yet.</div>
-        :<div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {completed.map(d=>{
-            const cd=d.completionData;
-            return(
-              <div key={d.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"16px 18px"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                  <div style={{fontSize:"14px",fontWeight:700,color:"#111",fontFamily:F}}>{d.name}</div>
-                  <div style={{fontSize:"11px",color:"#6b7280",fontFamily:F}}>{cd.closeDate?`Closed ${fDate(cd.closeDate)}`:""}</div>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
-                  {[{l:"Capital in",v:fC(cd.totalCad)},{l:"Post-money",v:cd.postMoney?fC(cd.postMoney):"—"},{l:"Ownership",v:cd.ownership?fPct(cd.ownership):"—"},{l:"Work fee",v:fC((cd.totalCad||0)*CLOSING_FEE),c:"#065f46"},{l:"Hurdle",v:fC((cd.totalCad||0)*(hp/100))}].map(f=>(
-                    <div key={f.l} style={{background:"#f9f9f7",borderRadius:8,padding:"8px 10px"}}>
-                      <div style={{fontSize:"9px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",marginBottom:3,fontFamily:F}}>{f.l}</div>
-                      <div style={{fontSize:"13px",fontWeight:600,color:f.c||"#111",fontFamily:MONO}}>{f.v}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>}
-    </div>
-  );
-}
-
-// ── Network Page ──────────────────────────────────────────────────────────────
-function NetworkPage({deals,netNotes,setNetNotes,saveNetNotes}){
-  const [newNote,setNewNote]=useState("");
-  const [author,setAuthor]=useState(()=>{ try{return localStorage.getItem("itmv-author")||"";}catch(e){return "";} });
-
-  function addNote(){
-    if(!newNote.trim()) return;
-    const n={id:uid(),text:newNote.trim(),author:author||"Anonymous",timestamp:new Date().toISOString()};
-    const u=[...netNotes,n]; setNetNotes(u); saveNetNotes(u); setNewNote("");
-  }
-
-  // Build referral network from deals
-  const referrals={};
-  deals.forEach(d=>{
-    if(d.externalReferral){ if(!referrals[d.externalReferral])referrals[d.externalReferral]=[]; referrals[d.externalReferral].push(d.name); }
-  });
-
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}}>
-      <h1 style={{margin:"0 0 24px",fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Network</h1>
-      {Object.keys(referrals).length>0&&(
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10,fontFamily:F}}>Referral sources</div>
-          <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {Object.entries(referrals).map(([name,dls])=>(
-              <div key={name} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:10,padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:"13px",fontWeight:600,color:"#111",fontFamily:F}}>{name}</span>
-                <span style={{fontSize:"11px",color:"#6b7280",fontFamily:F}}>{dls.join(", ")}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={{fontSize:"10px",fontWeight:700,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10,fontFamily:F}}>Network notes</div>
-      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
-        {netNotes.map(n=>(
-          <div key={n.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:9,padding:"10px 12px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-              <span style={{fontSize:"12px",fontWeight:700,color:"#111",fontFamily:F}}>{n.author}</span>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <span style={{fontSize:"10px",color:"#9ca3af",fontFamily:F}}>{fDate(n.timestamp)}</span>
-                <button onClick={()=>{ const u=netNotes.filter(x=>x.id!==n.id); setNetNotes(u); saveNetNotes(u); }} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:13,padding:0}}>×</button>
-              </div>
-            </div>
-            <p style={{margin:0,fontSize:"13px",color:"#374151",lineHeight:1.6,fontFamily:F}}>{n.text}</p>
-          </div>
-        ))}
-      </div>
-      <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:10,padding:"12px 14px"}}>
-        <div style={{marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:"10px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.06em",fontFamily:F}}>Your name</span>
-          <input style={inp({background:"#f9f9f7",padding:"4px 9px",fontSize:"12px"})} value={author} onChange={e=>{ setAuthor(e.target.value); try{localStorage.setItem("itmv-author",e.target.value);}catch(err){} }}/>
-        </div>
-        <textarea style={inp({height:60,resize:"none",marginBottom:8})} value={newNote} onChange={e=>setNewNote(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))addNote(); }} placeholder="Add a network note… (Cmd+Enter)"/>
-        <button onClick={addNote} disabled={!newNote.trim()} style={btn("primary",{opacity:newNote.trim()?1:0.4})}>Add note</button>
-      </div>
-    </div>
-  );
-}
-
-// ── Data Room Page ────────────────────────────────────────────────────────────
-function DataRoomPage(){
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}}>
-      <h1 style={{margin:"0 0 8px",fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Data Room</h1>
-      <p style={{fontSize:"13px",color:"#6b7280",fontFamily:F,marginBottom:24}}>Deal-specific documents are available inside each completed deal's detail view.</p>
-      <div style={{background:"#fff",border:"1px dashed #e5e7eb",borderRadius:12,padding:40,textAlign:"center"}}>
-        <div style={{fontSize:"13px",color:"#9ca3af",fontFamily:F}}>Open a completed deal → Details tab → Data Room section to upload and manage documents.</div>
-      </div>
-    </div>
-  );
-}
-
-// ── Settings Page ─────────────────────────────────────────────────────────────
-function SettingsPage({settings,onSave}){
-  const [form,setForm]=useState({...settings});
-  const [saved,setSaved]=useState(false);
-  function save(){ onSave(form); setSaved(true); setTimeout(()=>setSaved(false),2000); }
-  return(
-    <div style={{flex:1,overflowY:"auto",padding:"36px 40px",background:"#f9f9f7"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-        <h1 style={{margin:0,fontSize:"20px",fontWeight:700,color:"#111",fontFamily:F}}>Settings</h1>
-        {saved&&<span style={{fontSize:"12px",color:"#065f46",fontWeight:600,fontFamily:F}}>✓ Saved</span>}
-      </div>
-      <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"22px 24px",maxWidth:480}}>
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div><label style={lbl}>USD → CAD rate</label><input style={inp()} type="number" step="0.01" value={form.usdCad} onChange={e=>setForm(f=>({...f,usdCad:Number(e.target.value)}))}/></div>
-          <div><label style={lbl}>Default currency</label><select style={inp()} value={form.defaultCurrency} onChange={e=>setForm(f=>({...f,defaultCurrency:e.target.value}))}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></div>
-          <div><label style={lbl}>Closing fee %</label><input style={inp()} type="number" step="0.1" value={form.closingFeePct} onChange={e=>setForm(f=>({...f,closingFeePct:Number(e.target.value)}))}/></div>
-          <div><label style={lbl}>Hurdle rate % (p.a.)</label><input style={inp()} type="number" step="0.1" value={form.hurdlePct} onChange={e=>setForm(f=>({...f,hurdlePct:Number(e.target.value)}))}/></div>
-          <div><label style={lbl}>Carry %</label><input style={inp()} type="number" step="0.1" value={form.carryPct} onChange={e=>setForm(f=>({...f,carryPct:Number(e.target.value)}))}/></div>
-          <button onClick={save} style={btn("primary",{alignSelf:"flex-start",padding:"9px 20px"})}>Save settings</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Root App ──────────────────────────────────────────────────────────────────
+// ── Root App ─────────────────────────────────────────────────────
 function App(){
-  const [tab,setTab]=useState("investments");
-  const [deals,setDeals]=useState([]);
-  const [investors,setInvestors]=useState([]);
-  const [settings,setSettings]=useState(DEFAULT_SETTINGS);
-  const [invProfiles,setInvProfiles]=useState({});
-  const [scenarios,setScenarios]=useState({});
-  const [netNotes,setNetNotes]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const [dbReady,setDbReady]=useState(true);
+  var ts=useState("investments"); var tab=ts[0],setTab=ts[1];
+  var ds=useState([]); var deals=ds[0],setDeals=ds[1];
+  var ss=useState(DEFAULT_SETTINGS); var settings=ss[0],setSettings=ss[1];
+  var ips=useState({}); var invProfiles=ips[0],setInvProfiles=ips[1];
+  var scns=useState({}); var scenarios=scns[0],setScenarios=scns[1];
+  var ls=useState(true); var loading=ls[0],setLoading=ls[1];
 
-  // Check if Supabase credentials are configured
-  const isConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE" && SUPABASE_KEY !== "YOUR_SUPABASE_ANON_KEY_HERE";
-
-  // ── Load all data on mount ──
-  useEffect(()=>{
+  useEffect(function(){
     if(!isConfigured){ setDeals(INIT_DEALS); setLoading(false); return; }
-    async function loadAll(){
-      try{
-        const [dealsRes, invRes, setRes, profRes, scnRes, netRes] = await Promise.all([
-          sbGet('app_data','deals'),
-          sbGet('app_data','investors'),
-          sbGet('app_data','settings'),
-          sbGet('app_data','inv_profiles'),
-          sbGet('app_data','scenarios'),
-          sbGet('app_data','net_notes'),
-        ]);
-        setDeals(dealsRes || INIT_DEALS);
-        setInvestors(invRes || []);
-        if(setRes) setSettings(setRes);
-        setInvProfiles(profRes || {});
-        setScenarios(scnRes || {});
-        setNetNotes(netRes || []);
-      } catch(e){
-        console.error("Load error:",e);
-        setDeals(INIT_DEALS);
-      }
+    Promise.all([sbGet("deals"),sbGet("settings"),sbGet("inv_profiles"),sbGet("scenarios")]).then(function(results){
+      setDeals(results[0]||INIT_DEALS);
+      if(results[1]) setSettings(results[1]);
+      setInvProfiles(results[2]||{});
+      setScenarios(results[3]||{});
       setLoading(false);
-    }
-    loadAll();
+    });
   },[]);
 
-  // ── Real-time sync ──
-  useEffect(()=>{
+  useEffect(function(){
     if(!isConfigured) return;
-    const channel = db.channel('app-sync')
-      .on('postgres_changes',{event:'*',schema:'public',table:'app_data',filter:"key=eq.deals"},
-        ({new:row})=>{ if(row&&row.value) setDeals(row.value); })
-      .on('postgres_changes',{event:'*',schema:'public',table:'app_data',filter:"key=eq.investors"},
-        ({new:row})=>{ if(row&&row.value) setInvestors(row.value); })
-      .on('postgres_changes',{event:'*',schema:'public',table:'app_data',filter:"key=eq.settings"},
-        ({new:row})=>{ if(row&&row.value) setSettings(row.value); })
+    var channel=db.channel("app-sync")
+      .on("postgres_changes",{event:"*",schema:"public",table:"app_data",filter:"key=eq.deals"},function(payload){ if(payload.new&&payload.new.value) setDeals(payload.new.value); })
+      .on("postgres_changes",{event:"*",schema:"public",table:"app_data",filter:"key=eq.settings"},function(payload){ if(payload.new&&payload.new.value) setSettings(payload.new.value); })
       .subscribe();
-    return ()=>db.removeChannel(channel);
-  },[isConfigured]);
+    return function(){ db.removeChannel(channel); };
+  },[]);
 
-  // ── Save helpers ──
-  const saveDeals    = useCallback(d  => sbSet('app_data','deals',d),[]);
-  const saveInvestors= useCallback(i  => sbSet('app_data','investors',i),[]);
-  const saveSettings = useCallback(s  => sbSet('app_data','settings',s),[]);
-  const saveProfiles = useCallback(p  => sbSet('app_data','inv_profiles',p),[]);
-  const saveNetNotes = useCallback(n  => sbSet('app_data','net_notes',n),[]);
-
-  const wrappedSetProfiles = useCallback((updater)=>{
-    setInvProfiles(prev=>{
-      const next = typeof updater==="function" ? updater(prev) : updater;
-      saveProfiles(next);
-      return next;
-    });
-  },[saveProfiles]);
-
-  function onSaveScenarios(dealId,s){
-    setScenarios(prev=>{ const next={...prev,[dealId]:s}; sbSet('app_data','scenarios',next); return next; });
-  }
+  var saveDeals=useCallback(function(d){ sbSet("deals",d); },[]);
+  var saveSettings=useCallback(function(s){ sbSet("settings",s); },[]);
+  function onSaveScenarios(dealId,s){ setScenarios(function(prev){ var next=Object.assign({},prev,{[dealId]:s}); sbSet("scenarios",next); return next; }); }
   function onSaveSettings(s){ setSettings(s); saveSettings(s); }
+  function wrappedSetProfiles(updater){ setInvProfiles(function(prev){ var next=typeof updater==="function"?updater(prev):updater; sbSet("inv_profiles",next); return next; }); }
 
-  if(loading){
-    return(
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#f9f9f7",flexDirection:"column",gap:12}}>
-        <div style={{width:32,height:32,border:"3px solid #e5e7eb",borderTop:"3px solid #111",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-        <span style={{fontSize:"13px",color:"#6b7280",fontFamily:F}}>Loading ITMV CRM…</span>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
+  if(loading) return h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#f9f9f7",flexDirection:"column",gap:12}},
+    h("div",{style:{width:32,height:32,border:"3px solid #e5e7eb",borderTop:"3px solid #111",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}),
+    h("span",{style:{fontSize:"13px",color:"#6b7280",fontFamily:F}},"Loading ITMV CRM…")
+  );
 
-  return(
-    <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
-      {/* Setup banner when unconfigured */}
-      {!isConfigured&&(
-        <div style={{position:"fixed",top:0,left:0,right:0,background:"#fef3c7",borderBottom:"1px solid #fbbf24",padding:"10px 20px",zIndex:999,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:"12px",fontWeight:700,color:"#92400e",fontFamily:F}}>⚠ Demo mode — </span>
-          <span style={{fontSize:"12px",color:"#92400e",fontFamily:F}}>Open this file in a text editor and replace <code style={{background:"#fde68a",padding:"1px 4px",borderRadius:3}}>YOUR_SUPABASE_URL_HERE</code> and <code style={{background:"#fde68a",padding:"1px 4px",borderRadius:3}}>YOUR_SUPABASE_ANON_KEY_HERE</code> at the top with your Supabase credentials to enable shared real-time data.</span>
-        </div>
-      )}
-
-      <Sidebar active={tab} onTab={setTab}/>
-
-      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",marginTop:isConfigured?0:44}}>
-        {tab==="investments"&&<InvestmentsPage deals={deals} setDeals={setDeals} save={saveDeals} settings={settings} invProfiles={invProfiles} setInvProfiles={wrappedSetProfiles} scenarios={scenarios} onSaveScenarios={onSaveScenarios}/>}
-        {tab==="investors"&&<InvestorsPage investors={investors} setInvestors={setInvestors} saveInvestors={saveInvestors} settings={settings}/>}
-        {tab==="performance"&&<PerformancePage deals={deals} settings={settings}/>}
-        {tab==="network"&&<NetworkPage deals={deals} netNotes={netNotes} setNetNotes={setNetNotes} saveNetNotes={saveNetNotes}/>}
-        {tab==="dataroom"&&<DataRoomPage/>}
-        {tab==="settings"&&<SettingsPage settings={settings} onSave={onSaveSettings}/>}
-      </div>
-    </div>
+  return h("div",{style:{display:"flex",height:"100vh",overflow:"hidden"}},
+    !isConfigured&&h("div",{style:{position:"fixed",top:0,left:0,right:0,background:"#fef3c7",borderBottom:"1px solid #fbbf24",padding:"10px 20px",zIndex:999,display:"flex",alignItems:"center",gap:10}},
+      h("span",{style:{fontSize:"12px",color:"#92400e",fontFamily:F}},"⚠ Demo mode — open index.html in a text editor and replace YOUR_SUPABASE_URL_HERE and YOUR_SUPABASE_ANON_KEY_HERE with your real credentials.")
+    ),
+    h(Sidebar,{active:tab,onTab:setTab}),
+    h("div",{style:{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",marginTop:isConfigured?0:44}},
+      tab==="investments"&&h(InvestmentsPage,{deals:deals,setDeals:setDeals,save:saveDeals,settings:settings,invProfiles:invProfiles,setInvProfiles:wrappedSetProfiles,scenarios:scenarios,onSaveScenarios:onSaveScenarios}),
+      tab==="investors"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Investors page — coming soon"),
+      tab==="performance"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Performance page — coming soon"),
+      tab==="network"&&h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"#9ca3af",fontFamily:F,fontSize:"13px"}},"Network page — coming soon"),
+      tab==="settings"&&h(SettingsPage,{settings:settings,onSave:onSaveSettings})
+    )
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(h(App,null));
 </script>
 </body>
 </html>
